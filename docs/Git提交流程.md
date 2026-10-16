@@ -55,3 +55,23 @@ python git_push.py --save-token 令牌   把令牌交 Windows 凭据管理器加
 1. 曾在网页上删除并重建仓库 → 旧的细粒度令牌（`github_pat_` 开头）对新建仓库失效，导致 bat 与 TortoiseGit 同时鉴权失败。现已改用 classic 令牌（`ghp_` 开头）。
 2. 本地残留过指向已删除提交的 `origin/master` 引用，已清除。
 3. bat 曾因 **LF 换行 + `chcp 65001`** 导致一闪就退出，现改为纯 ASCII 启动器 + Python 实现。
+
+## 七、发布 exe / zip（走 GitHub Releases，不要提交进仓库）
+
+`.gitignore` 已排除 `*.exe` 与 `*.zip`，打包产物**不进 git 仓库**。原因：二进制一旦进仓库就永久留在 git 历史里，之后每次 clone 都要下载几十上百 MB。
+
+发布物统一走 **Releases**，步骤：
+
+1. 双击 `E:\work\WB_\make_release.bat`，生成两个文件到 `E:\work\WB_\`：
+   - `YYYCleanSweep_v3.30.exe`（单文件版）
+   - `YYYCleanSweepFast_v3.30.zip`（目录版压缩包）
+2. 打开 https://github.com/yuluochenxiang/YYYCleanSweep
+3. 右侧 **Releases** → **Draft a new release**
+4. **Choose a tag** 输入 `v3.30`，选择 `Create new tag on publish`
+5. 标题填 `YYYCleanSweep v3.30`，描述写本次更新内容
+6. 下方虚线框拖入上面两个文件（或点 browse 选择）
+7. 点 **Publish release**
+
+发布后下载地址：https://github.com/yuluochenxiang/YYYCleanSweep/releases/latest
+
+优势：单文件上限 2 GB（当前两个各约 48 MB）、自动生成下载页与统计、不污染仓库历史。
