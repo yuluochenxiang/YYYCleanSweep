@@ -6,6 +6,22 @@ Windows 离线磁盘清理与空间分析工具。单文件/文件夹两种形�
 
 Python 3.13 + PySide6 写成，规则和目录知识库全部是可编辑的 JSON。
 
+## 界面预览
+
+以下为 v3.30 实拍截图（点任意一张可看大图）：
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b0e1c55c-e350-4d4c-acbb-a73f4ce20f78" alt="项目清理" width="49%">
+  <img src="https://github.com/user-attachments/assets/37b3b7d8-a7b7-4e05-bc1d-7d8c99b6c694" alt="大文件定位" width="49%">
+</p>
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/d735359a-8c26-4335-8f27-dca1565c98f9" alt="目录分析" width="49%">
+  <img src="https://github.com/user-attachments/assets/f364f691-40eb-47cc-b551-4cdda3033202" alt="文件去重" width="49%">
+</p>
+
+> 两种发布形态的区别、如何取舍，见 [五、运行](#五运行)；不想先从源码跑的话，
+> 直接到 [Releases](https://github.com/yuluochenxiang/YYYCleanSweep/releases/latest) 下载即可。
+
 ### 最近更新（v3.30）
 
 - **关于 / 帮助新增开源仓库链接**：「关于」页新增「开源仓库」一节、「更新与反馈」页新增「源码仓库」小节，都指向 GitHub 仓库 `https://github.com/yuluochenxiang/YYYCleanSweep`，点击直接在浏览器打开——方便看源码、报问题、提建议。仅新增链接，未改动任何清理逻辑。
