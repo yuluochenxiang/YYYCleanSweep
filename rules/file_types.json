@@ -1,0 +1,101 @@
+{
+  "version": "1.0",
+  "说明": "文件类型归类表，用于目录扫描后按类型统计占用。可自行增删。ext 为小写扩展名（不含点）。",
+  "categories": [
+    {
+      "id": "video",
+      "name": "视频",
+      "color": "#E24B4A",
+      "ext": ["mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "m4v", "ts", "rmvb", "rm", "mpg", "mpeg", "3gp", "vob", "m2ts", "ogv", "divx"]
+    },
+    {
+      "id": "audio",
+      "name": "音频",
+      "color": "#BA7517",
+      "ext": ["mp3", "wav", "flac", "aac", "ogg", "m4a", "wma", "opus", "aiff", "ape", "mid", "midi", "amr"]
+    },
+    {
+      "id": "image",
+      "name": "图片",
+      "color": "#378ADD",
+      "ext": ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg", "heic", "heif", "tiff", "tif", "ico", "psd", "psb", "raw", "cr2", "nef", "arw", "avif", "emf", "wmf", "xcf", "sketch", "dds", "tga", "exr", "hdr", "ktx"]
+    },
+    {
+      "id": "archive",
+      "name": "压缩包",
+      "color": "#1D9E75",
+      "ext": ["zip", "rar", "7z", "tar", "gz", "bz2", "xz", "cab", "lz4", "zst", "arj", "lzh", "ace", "tgz"]
+    },
+    {
+      "id": "setup",
+      "name": "安装包/程序",
+      "color": "#7F77DD",
+      "ext": ["exe", "msi", "msp", "msu", "apk", "deb", "rpm", "pkg", "dmg", "appx", "msix", "msixbundle", "nupkg", "whl", "jar", "appimage"]
+    },
+    {
+      "id": "doc",
+      "name": "文档",
+      "color": "#888780",
+      "ext": ["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "txt", "md", "csv", "epub", "mobi", "rtf", "odt", "ods", "odp", "djvu", "xps", "chm", "hlp"]
+    },
+    {
+      "id": "code",
+      "name": "代码/配置",
+      "color": "#5DCAA5",
+      "ext": ["py", "js", "ts", "jsx", "tsx", "java", "kt", "cpp", "c", "h", "hpp", "cs", "go", "rs", "rb", "php", "swift", "html", "css", "scss", "vue", "json", "xml", "yml", "yaml", "toml", "ini", "cfg", "conf", "properties", "gradle", "sh", "bat", "ps1", "sql", "lua", "gd", "csproj", "sln"]
+    },
+    {
+      "id": "db",
+      "name": "数据库/索引",
+      "color": "#D85A0B",
+      "ext": ["db", "sqlite", "sqlite3", "db3", "mdf", "ldf", "ndf", "realm", "mdb", "accdb", "ldb", "idx", "myd", "myi", "ibd", "frm", "wal", "shm"]
+    },
+    {
+      "id": "log",
+      "name": "日志",
+      "color": "#AFA9EC",
+      "ext": ["log", "etl", "evtx", "trace", "old"]
+    },
+    {
+      "id": "temp",
+      "name": "缓存/临时",
+      "color": "#EF9F27",
+      "ext": ["tmp", "temp", "cache", "bak", "swp", "crdownload", "part", "partial", "download", "!ut", "!bt", "aria2", "dmp", "mdmp", "hdmp", "wer", "chk", "gid", "nch"]
+    },
+    {
+      "id": "model",
+      "name": "AI 模型/权重",
+      "color": "#D4537E",
+      "ext": ["safetensors", "bin", "pt", "pth", "ckpt", "onnx", "gguf", "ggml", "pb", "h5", "npz", "npy", "msgpack", "model", "tflite", "engine", "plan"]
+    },
+    {
+      "id": "game",
+      "name": "游戏资源",
+      "color": "#639922",
+      "ext": ["pak", "ucas", "utoc", "unity3d", "assets", "bundle", "upk", "wad", "vpk", "gcf", "ncf", "bsa", "esp", "esm", "esp2", "dat", "cat", "xnb", "uasset", "umap", "fsb", "bnk", "wem", "pck", "res", "sgd"]
+    },
+    {
+      "id": "font",
+      "name": "字体",
+      "color": "#B4B2A9",
+      "ext": ["ttf", "otf", "woff", "woff2", "fon", "ttc", "eot", "pfb", "pfm"]
+    },
+    {
+      "id": "disk",
+      "name": "镜像/虚拟机",
+      "color": "#85A9E0",
+      "ext": ["iso", "vhd", "vhdx", "vdi", "vmdk", "wim", "esd", "img", "vbox", "ova", "ovf", "swm", "ppkg"]
+    },
+    {
+      "id": "lib",
+      "name": "程序库/驱动",
+      "color": "#5F5E5A",
+      "ext": ["dll", "sys", "so", "dylib", "lib", "a", "obj", "pdb", "ilk", "exp", "node", "pyd", "drv", "efi", "mui", "nls", "manifest", "cat", "inf"]
+    }
+  ],
+  "fallback": {
+    "id": "other",
+    "name": "其他",
+    "color": "#9CA3AF"
+  }
+}

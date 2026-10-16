@@ -1,0 +1,29 @@
+# ===== 依赖与虚拟环境（本地生成，不入库）=====
+venv/
+.venv/
+env/
+
+# ===== 构建 / 部署产物（由 build.py 生成，约几十 MB）=====
+app/
+build/
+dist/
+*.exe
+*.bin
+
+# ===== Python 缓存 =====
+__pycache__/
+*.py[cod]
+
+# ===== 临时与过程文件 =====
+_shot/
+_bak*/
+*.log
+*.zip
+_cfg_backup.json
+Thumbs.db
+Desktop.ini
+
+# ===== 编辑器 / IDE =====
+.idea/
+.vscode/
+*.swp

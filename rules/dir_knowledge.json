@@ -1,0 +1,5959 @@
+{
+ "version": 2.0,
+ "说明": "目录作用知识库。扫描到目录后按 paths > (parents+names) > names > keywords 的优先级匹配，给出作用解释与处置建议。可自由增改（v2.0 起补入本机实测的软件 / 工具 / 游戏 / 开发环境目录）。",
+ "entries": [
+  {
+   "id": "win_winsxs",
+   "name": "Windows 组件存储",
+   "paths": [
+    "windows\\winsxs"
+   ],
+   "names": [
+    "WinSxS"
+   ],
+   "kind": "system",
+   "risk": "danger",
+   "purpose": "保存系统组件的所有历史版本，供 Windows 更新回滚与修复使用。体积含大量硬链接，资源管理器看到的数字通常虚高。",
+   "advice": "禁止手动删除。只能用管理员权限运行 DISM /Online /Cleanup-Image /StartComponentCleanup 让系统自己清理。"
+  },
+  {
+   "id": "win_installer",
+   "name": "Windows Installer 缓存",
+   "paths": [
+    "windows\\installer"
+   ],
+   "names": [
+    "Installer"
+   ],
+   "parents": [
+    "Windows"
+   ],
+   "kind": "install",
+   "risk": "danger",
+   "purpose": "存放软件安装时的 .msi/.msp 原始包，卸载、修复、更新软件时都要调用它。",
+   "advice": "不要手动删。删了软件会报「找不到安装源」而无法卸载。要清理请用 PatchCleaner 之类工具只清孤立项。"
+  },
+  {
+   "id": "win_softdist",
+   "name": "Windows 更新下载缓存",
+   "paths": [
+    "windows\\softwaredistribution"
+   ],
+   "names": [
+    "SoftwareDistribution"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "Windows Update 存放已下载更新包的地方，装完后的安装包一般不再需要。",
+   "advice": "可清理 Download 子目录。先停 wuauserv 服务再删，只清内容不要删文件夹本身。"
+  },
+  {
+   "id": "win_softdist_dl",
+   "name": "更新包下载目录",
+   "paths": [
+    "softwaredistribution\\download"
+   ],
+   "names": [
+    "Download"
+   ],
+   "parents": [
+    "SoftwareDistribution"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "Windows Update 下载的具体更新文件，安装完成即成为残留。",
+   "advice": "安全。停掉 Windows Update 服务后清空内容，可释放数 GB。"
+  },
+  {
+   "id": "win_driverstore",
+   "name": "驱动程序存储库",
+   "paths": [
+    "system32\\driverstore",
+    "driverstore\\filerepository"
+   ],
+   "names": [
+    "DriverStore",
+    "FileRepository"
+   ],
+   "kind": "system",
+   "risk": "danger",
+   "purpose": "Windows 把装过的每个驱动都备份一份在这里，方便拔插设备时自动重装。",
+   "advice": "不要整目录删。要清理旧驱动用管理员运行 pnputil /enum-drivers 后按 OEM 编号 /delete-driver 删除。"
+  },
+  {
+   "id": "win_prefetch",
+   "name": "预读取缓存",
+   "paths": [
+    "windows\\prefetch"
+   ],
+   "names": [
+    "Prefetch"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "记录程序启动所需文件位置以加快启动速度，是纯缓存。",
+   "advice": "可清理。删后系统自动重建，只会让接下来一两次开机略微变慢。"
+  },
+  {
+   "id": "win_temp",
+   "name": "系统临时目录",
+   "paths": [
+    "windows\\temp"
+   ],
+   "names": [
+    "Temp"
+   ],
+   "parents": [
+    "Windows"
+   ],
+   "kind": "temp",
+   "risk": "safe",
+   "purpose": "安装程序和系统组件解压出来的临时文件，理论上用完就该清掉。",
+   "advice": "可清理，删不掉的多是被占用，跳过即可。需要管理员权限。"
+  },
+  {
+   "id": "win_system32",
+   "name": "系统核心目录",
+   "paths": [
+    "windows\\system32",
+    "windows\\syswow64"
+   ],
+   "names": [
+    "System32",
+    "SysWOW64"
+   ],
+   "kind": "system",
+   "risk": "danger",
+   "purpose": "Windows 运行必需的核心文件和动态链接库。",
+   "advice": "禁止删除任何内容。删错系统直接无法启动。"
+  },
+  {
+   "id": "win_fonts",
+   "name": "系统字体",
+   "paths": [
+    "windows\\fonts"
+   ],
+   "names": [
+    "Fonts"
+   ],
+   "parents": [
+    "Windows"
+   ],
+   "kind": "system",
+   "risk": "keep",
+   "purpose": "系统安装的字体文件，软件渲染文字时调用。",
+   "advice": "不建议清理。要删字体请走「设置→个性化→字体」，不要直接删文件。"
+  },
+  {
+   "id": "win_logs_cbs",
+   "name": "CBS / DISM 日志",
+   "paths": [
+    "windows\\logs"
+   ],
+   "names": [
+    "Logs"
+   ],
+   "parents": [
+    "Windows"
+   ],
+   "kind": "log",
+   "risk": "safe",
+   "purpose": "组件服务 CBS、DISM、Windows Update 的运行日志，用于排错。",
+   "advice": "可清理。不影响系统，只是以后排查更新故障会少些依据。"
+  },
+  {
+   "id": "win_panther",
+   "name": "系统安装日志",
+   "paths": [
+    "windows\\panther"
+   ],
+   "names": [
+    "Panther"
+   ],
+   "kind": "log",
+   "risk": "safe",
+   "purpose": "Windows 安装与升级过程留下的日志和诊断文件。",
+   "advice": "可清理。系统装完后基本无用。"
+  },
+  {
+   "id": "win_delivery",
+   "name": "传递优化缓存",
+   "paths": [
+    "windows\\softwaredistribution\\deliveryoptimization",
+    "windows\\deliveryoptimization"
+   ],
+   "names": [
+    "DeliveryOptimization"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Windows 更新和商店应用从局域网/互联网其他机器分块下载时用的缓存。",
+   "advice": "可清理。也可在「设置→Windows 更新→传递优化」里直接清除。"
+  },
+  {
+   "id": "win_windows_old",
+   "name": "旧系统备份",
+   "paths": [
+    "windows.old"
+   ],
+   "names": [
+    "Windows.old"
+   ],
+   "kind": "backup",
+   "risk": "caution",
+   "purpose": "大版本升级时保留的上一版 Windows，用于回退。",
+   "advice": "确认不需要回退旧系统后可删，通常能释放 10~30 GB。用「磁盘清理→清理系统文件→以前的 Windows 安装」最安全。"
+  },
+  {
+   "id": "win_windowsapps",
+   "name": "Microsoft Store 应用",
+   "paths": [
+    "program files\\windowsapps"
+   ],
+   "names": [
+    "WindowsApps"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "所有 Microsoft Store（UWP）应用的安装位置。",
+   "advice": "不要手动删。要卸载请在「设置→应用」里卸载，否则残留无法彻底清除。"
+  },
+  {
+   "id": "win_modifiableapps",
+   "name": "可修改商店应用",
+   "paths": [
+    "program files\\modifiablewindowsapps"
+   ],
+   "names": [
+    "ModifiableWindowsApps"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "允许被修改的商店应用目录，通常装的是 Xbox 相关组件。",
+   "advice": "不建议手动删。"
+  },
+  {
+   "id": "win_livekernel",
+   "name": "内核实时转储",
+   "paths": [
+    "windows\\livekernelreports"
+   ],
+   "names": [
+    "LiveKernelReports"
+   ],
+   "kind": "log",
+   "risk": "safe",
+   "purpose": "系统蓝屏或驱动崩溃时生成的内核转储报告。",
+   "advice": "可清理。但如果正在排查蓝屏问题，先别删。"
+  },
+  {
+   "id": "win_serviceprofiles",
+   "name": "服务配置目录",
+   "paths": [
+    "windows\\serviceprofiles"
+   ],
+   "names": [
+    "ServiceProfiles"
+   ],
+   "kind": "system",
+   "risk": "keep",
+   "purpose": "系统服务运行的账户配置数据。",
+   "advice": "不要删。"
+  },
+  {
+   "id": "win_assembly",
+   "name": ".NET 程序集缓存",
+   "paths": [
+    "windows\\assembly"
+   ],
+   "names": [
+    "assembly"
+   ],
+   "parents": [
+    "Windows"
+   ],
+   "kind": "system",
+   "risk": "danger",
+   "purpose": ".NET Framework 全局程序集缓存（GAC）。",
+   "advice": "禁止删除，删了所有 .NET 程序都跑不起来。"
+  },
+  {
+   "id": "win_sdk_kits",
+   "name": "Windows SDK / 开发工具包",
+   "paths": [
+    "program files (x86)\\windows kits",
+    "program files\\windows kits"
+   ],
+   "names": [
+    "Windows Kits",
+    "Microsoft SDKs"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "Windows 软件开发工具包（头文件、库、调试器、签名工具），只有开发 C/C++ 才需要。",
+   "advice": "不做 Windows 原生开发可卸载，能释放 1~2 GB。在「应用和功能」里卸载对应版本。"
+  },
+  {
+   "id": "recycle_bin",
+   "name": "回收站",
+   "paths": [],
+   "names": [
+    "$recycle.bin"
+   ],
+   "kind": "system",
+   "risk": "safe",
+   "purpose": "各分区的回收站，删除的文件在这里继续占用空间。",
+   "advice": "可以直接清空，但清空后无法还原。",
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sysvol",
+   "name": "系统卷信息",
+   "paths": [
+    "system volume information"
+   ],
+   "names": [
+    "System Volume Information"
+   ],
+   "kind": "system",
+   "risk": "danger",
+   "purpose": "存放系统还原点、卷影副本、磁盘索引等系统级数据。",
+   "advice": "禁止手动删。要释放空间用「系统属性→系统保护→配置→删除旧还原点」。"
+  },
+  {
+   "id": "hiberfil",
+   "name": "休眠文件",
+   "names": [
+    "hiberfil.sys"
+   ],
+   "kind": "system",
+   "risk": "caution",
+   "purpose": "休眠时把内存内容写入此文件，大小约等于物理内存。",
+   "advice": "不用休眠可用管理员运行 powercfg /h off 关闭并自动删除；注意这会同时关掉快速启动。"
+  },
+  {
+   "id": "pagefile",
+   "name": "虚拟内存页面文件",
+   "names": [
+    "pagefile.sys",
+    "swapfile.sys"
+   ],
+   "kind": "system",
+   "risk": "migrate",
+   "purpose": "内存不足时把数据临时写到磁盘上，是系统的虚拟内存。",
+   "advice": "不要删，应迁移到其他盘：系统属性→高级→性能→虚拟内存，把 C 盘设为无分页文件，在其他盘设置。"
+  },
+  {
+   "id": "perflogs",
+   "name": "性能日志",
+   "paths": [
+    "perflogs"
+   ],
+   "names": [
+    "PerfLogs"
+   ],
+   "kind": "log",
+   "risk": "safe",
+   "purpose": "Windows 性能监视器的日志输出目录，多数机器上为空。",
+   "advice": "可清理。"
+  },
+  {
+   "id": "intel_dir",
+   "name": "Intel 驱动与工具",
+   "paths": [
+    "\\intel"
+   ],
+   "names": [
+    "Intel"
+   ],
+   "parents": [
+    "C:"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "Intel 芯片组、显卡驱动的解压安装目录，装完后的解压包常不清理。",
+   "advice": "里面的驱动解压子目录可删；如果还在用 Intel 显卡驱动则根目录保留。"
+  },
+  {
+   "id": "amd_root",
+   "name": "AMD 软件目录",
+   "paths": [
+    "\\amd"
+   ],
+   "names": [
+    "AMD"
+   ],
+   "parents": [
+    "C:"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "AMD 显卡驱动解压出来的安装包与工具。",
+   "advice": "驱动装完后残留的解压包可删。正在使用的驱动组件保留。"
+  },
+  {
+   "id": "appdata_root",
+   "name": "AppData 应用数据总目录",
+   "paths": [
+    "appdata"
+   ],
+   "names": [
+    "AppData"
+   ],
+   "kind": "user",
+   "risk": "danger",
+   "purpose": "所有软件的配置、缓存、数据的总容器，分 Local / Roaming / LocalLow 三部分。",
+   "advice": "绝对不要整体删除，那等于把全部软件恢复出厂设置。只能针对具体子目录清理。",
+   "container": true
+  },
+  {
+   "id": "appdata_local",
+   "name": "AppData\\Local",
+   "paths": [
+    "appdata\\local"
+   ],
+   "names": [
+    "Local"
+   ],
+   "parents": [
+    "AppData"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "不随账户漫游的机器本地数据：缓存、日志、大体积数据仓库。三个子目录里最大的一个。",
+   "advice": "分门别类处理：名为 Cache / Logs / Temp 的子目录可清，其余先看目录名判断。",
+   "container": true
+  },
+  {
+   "id": "appdata_roaming",
+   "name": "AppData\\Roaming",
+   "paths": [
+    "appdata\\roaming"
+   ],
+   "names": [
+    "Roaming"
+   ],
+   "parents": [
+    "AppData"
+   ],
+   "kind": "user",
+   "risk": "danger",
+   "purpose": "软件配置、账号登录态、插件、用户数据。设计上跟随账户在多台电脑间同步。",
+   "advice": "极度谨慎，删了等于重置软件。整体不要动，只在明确知道某个子目录是缓存时才清。",
+   "container": true
+  },
+  {
+   "id": "appdata_local_low",
+   "name": "AppData\\LocalLow",
+   "paths": [
+    "appdata\\locallow"
+   ],
+   "names": [
+    "LocalLow"
+   ],
+   "parents": [
+    "AppData"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "低权限进程（沙箱、Unity 游戏）的数据，绝大多数 Unity 游戏存档都在这里。",
+   "advice": "一般不动。里面按游戏厂商命名的目录多为存档，删了游戏进度就没了。",
+   "container": true
+  },
+  {
+   "id": "user_temp",
+   "name": "用户临时目录",
+   "paths": [
+    "appdata\\local\\temp"
+   ],
+   "names": [
+    "Temp"
+   ],
+   "parents": [
+    "Local"
+   ],
+   "kind": "temp",
+   "risk": "safe",
+   "purpose": "程序运行时产生的临时文件，Windows 日常维护本来就会清它。",
+   "advice": "可清理。先关掉正在运行的程序，删不掉的跳过即可。"
+  },
+  {
+   "id": "inet_cache",
+   "name": "IE / Edge 网页缓存",
+   "paths": [
+    "inetcache",
+    "windows\\inetcache"
+   ],
+   "names": [
+    "INetCache",
+    "INetCookies"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Internet Explorer 与旧版 Edge 的网页缓存、Cookie。",
+   "advice": "可清理。不影响浏览器核心功能。"
+  },
+  {
+   "id": "thumbcache",
+   "name": "缩略图缓存",
+   "paths": [
+    "explorer"
+   ],
+   "names": [
+    "Explorer",
+    "thumbcache_32.db",
+    "thumbcache_96.db",
+    "thumbcache_256.db",
+    "thumbcache_1024.db",
+    "thumbcache_idx.db",
+    "thumbcache_sr.db",
+    "iconcache_32.db"
+   ],
+   "parents": [
+    "Windows",
+    "Microsoft"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "资源管理器为图片视频生成的缩略图数据库，避免每次重新渲染。",
+   "advice": "可清理。建议先关闭所有资源管理器窗口再删，删后缩略图会自动重建。"
+  },
+  {
+   "id": "d3dscache",
+   "name": "DirectX 着色器缓存",
+   "names": [
+    "D3DSCache"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "DirectX 应用编译过的着色器缓存，用于加快启动。",
+   "advice": "可清理。删后首次运行游戏/应用会重新编译着色器，稍慢一次。"
+  },
+  {
+   "id": "wer",
+   "name": "Windows 错误报告",
+   "paths": [
+    "appdata\\local\\microsoft\\windows\\wer",
+    "windows\\wer"
+   ],
+   "names": [
+    "WER"
+   ],
+   "kind": "log",
+   "risk": "safe",
+   "purpose": "程序崩溃时收集的崩溃报告和转储文件。",
+   "advice": "可清理。正在排查崩溃原因时先留着。"
+  },
+  {
+   "id": "crash_dumps",
+   "name": "崩溃转储",
+   "names": [
+    "CrashDumps",
+    "Minidump",
+    "minidumps"
+   ],
+   "kind": "log",
+   "risk": "safe",
+   "purpose": "程序崩溃时写出的内存转储，供开发者排查问题。",
+   "advice": "可清理。对普通用户没有用处。"
+  },
+  {
+   "id": "local_packages",
+   "name": "UWP 应用数据",
+   "paths": [
+    "appdata\\local\\packages"
+   ],
+   "names": [
+    "Packages"
+   ],
+   "parents": [
+    "Local"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "每个 Microsoft Store 应用的数据、缓存、设置。",
+   "advice": "不要整体删。可进具体应用的 AC 或 LocalCache 子目录清理缓存。"
+  },
+  {
+   "id": "squirrel_temp",
+   "name": "Squirrel 更新残留",
+   "names": [
+    "SquirrelTemp"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Electron / Squirrel 框架软件（微信、VS Code、各类国产客户端）升级时用的临时目录，升级完常不清理。",
+   "advice": "可清理，纯残留。"
+  },
+  {
+   "id": "updater_pkg",
+   "name": "客户端更新器残留",
+   "keywords": [
+    "-updater",
+    "updater",
+    "_updater"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Electron 类软件（豆包、夸克、B站、DeepSeek 等）升级后留下的旧版本安装包。",
+   "advice": "可清理。名字里带 updater 且位于 AppData\\Local 的目录基本都是升级残留。"
+  },
+  {
+   "id": "virtualstore",
+   "name": "虚拟化重定向目录",
+   "names": [
+    "VirtualStore"
+   ],
+   "kind": "system",
+   "risk": "caution",
+   "purpose": "老程序没有管理员权限却写 Program Files / 注册表时，Windows 把写入重定向到这里。",
+   "advice": "一般保留。体积大说明有老软件在反复重定向写入，建议升级该软件。"
+  },
+  {
+   "id": "nvidia_dxcache",
+   "name": "NVIDIA 着色器缓存",
+   "paths": [
+    "nvidia\\dxcache",
+    "nvidia\\glcache"
+   ],
+   "names": [
+    "DXCache",
+    "GLCache"
+   ],
+   "parents": [
+    "NVIDIA",
+    "DxCache"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "NVIDIA 显卡为游戏预编译的着色器缓存，避免每次进游戏都重新编译。",
+   "advice": "可清理，是最常见的「隐形大户」（动辄好几个 G）。删后第一次进游戏会重新编译，略有卡顿。"
+  },
+  {
+   "id": "amd_dxcache",
+   "name": "AMD 着色器缓存",
+   "paths": [
+    "amd\\dxcache",
+    "amd\\glcache"
+   ],
+   "names": [
+    "DxCache",
+    "GLCache"
+   ],
+   "parents": [
+    "AMD"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "AMD 显卡的着色器缓存，作用同 NVIDIA DXCache。",
+   "advice": "可清理，删后自动重建。"
+  },
+  {
+   "id": "cuda_toolkit",
+   "name": "NVIDIA CUDA 工具包",
+   "paths": [
+    "nvidia gpu computing toolkit"
+   ],
+   "names": [
+    "NVIDIA GPU Computing Toolkit"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "CUDA 开发库，用于 GPU 计算、深度学习训练、部分视频编码。",
+   "advice": "不做 AI/科学计算可卸载，单个版本约 3~5 GB。在「应用和功能」里卸载 CUDA 对应版本。"
+  },
+  {
+   "id": "nvidia_ansel",
+   "name": "NVIDIA Ansel 截图",
+   "paths": [
+    "ansel"
+   ],
+   "names": [
+    "Ansel"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "NVIDIA Ansel 游戏内高清截图/全景照片的存放目录。",
+   "advice": "里面是你自己拍的游戏截图，确认不需要再删。"
+  },
+  {
+   "id": "steam_root",
+   "name": "Steam 游戏库",
+   "paths": [
+    "steam\\steamapps",
+    "steamapps"
+   ],
+   "names": [
+    "steamapps",
+    "Steam"
+   ],
+   "kind": "game",
+   "risk": "migrate",
+   "purpose": "Steam 已安装游戏的本体文件。体积通常是整台机器最大的一块。",
+   "advice": "不要删。可在 Steam「设置→下载→内容库」里加一个新库文件夹把游戏搬到别的盘，不用重装。"
+  },
+  {
+   "id": "steam_shader",
+   "name": "Steam 着色器缓存",
+   "paths": [
+    "steam\\steamapps\\shadercache"
+   ],
+   "names": [
+    "shadercache"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Steam 为每个游戏预编译的着色器缓存。",
+   "advice": "可清理，删后进入游戏时自动重建。"
+  },
+  {
+   "id": "steam_downloading",
+   "name": "Steam 下载暂存",
+   "paths": [
+    "steamapps\\downloading"
+   ],
+   "names": [],
+   "kind": "temp",
+   "risk": "safe",
+   "purpose": "正在下载 / 更新时的临时分片文件，下载中断后会残留。",
+   "advice": "可以删，没有正在进行的下载时清空最安全。",
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "steam_workshop",
+   "name": "Steam 创意工坊内容",
+   "paths": [
+    "steamapps\\workshop"
+   ],
+   "names": [],
+   "kind": "game",
+   "risk": "caution",
+   "purpose": "订阅的模组、地图、皮肤等创意工坊内容，按 AppID 分目录。",
+   "advice": "可以删：删掉只是取消本地文件，重新订阅会自动下载。正在用的模组别删。",
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "steam_compatdata",
+   "name": "Steam Proton 兼容层数据",
+   "paths": [
+    "steamapps\\compatdata"
+   ],
+   "names": [],
+   "kind": "game",
+   "risk": "caution",
+   "purpose": "Linux 游戏在 Windows 上通过 Proton 运行时生成的兼容层，每个游戏一份。",
+   "advice": "删除等于删掉对应游戏在 Proton 下的存档与设置。确认不再玩再删。",
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "steam_userdata",
+   "name": "Steam 用户数据（存档 / 截图）",
+   "paths": [
+    "steam\\userdata"
+   ],
+   "names": [],
+   "kind": "user",
+   "risk": "keep",
+   "purpose": "按账号 ID 存放的云存档、截图、个人配置，是 Steam 里最不能丢的部分。",
+   "advice": "不要删。截图太多可以进 Steam 里单独清理截图，不要整目录删除。",
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "steam_appcache",
+   "name": "Steam 商店与界面缓存",
+   "paths": [
+    "steam\\appcache"
+   ],
+   "names": [],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "商店页面、库存、好友列表的本地缓存。",
+   "advice": "可直接清理，Steam 会自动重建。",
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "epic_games",
+   "name": "Epic Games 游戏库",
+   "paths": [
+    "program files\\epic games",
+    "program files (x86)\\epic games"
+   ],
+   "names": [
+    "Epic Games"
+   ],
+   "kind": "game",
+   "risk": "migrate",
+   "purpose": "Epic 游戏商店及其已安装游戏本体。",
+   "advice": "不要删。游戏可在 Epic 客户端里「移动安装位置」迁到其他盘。"
+  },
+  {
+   "id": "epic_vaultcache",
+   "name": "Epic 已安装游戏的下载缓存",
+   "paths": [
+    "epic games\\launcher\\vaultcache"
+   ],
+   "names": [],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Epic 用来还原 / 修复已安装游戏的本地缓存，安装完就不再需要，体积常常几个 GB。",
+   "advice": "可以删。删后「验证游戏」会重新下载这部分数据，但正常游玩不受影响。",
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "ubisoft",
+   "name": "Ubisoft 游戏",
+   "paths": [
+    "program files (x86)\\ubisoft",
+    "program files\\ubisoft"
+   ],
+   "names": [
+    "Ubisoft"
+   ],
+   "kind": "game",
+   "risk": "migrate",
+   "purpose": "育碧游戏本体与 Uplay / Ubisoft Connect 客户端。",
+   "advice": "不要删。可在 Ubisoft Connect 设置里改游戏安装目录迁走。"
+  },
+  {
+   "id": "gog",
+   "name": "GOG 游戏",
+   "paths": [
+    "programdata\\gog.com"
+   ],
+   "names": [
+    "GOG.com"
+   ],
+   "kind": "game",
+   "risk": "migrate",
+   "purpose": "GOG Galaxy 客户端数据与游戏。",
+   "advice": "不要删游戏本体，可在 GOG Galaxy 里改安装路径。"
+  },
+  {
+   "id": "ea_origin",
+   "name": "EA / Origin 游戏",
+   "paths": [
+    "programdata\\origin"
+   ],
+   "names": [
+    "Origin"
+   ],
+   "kind": "game",
+   "risk": "caution",
+   "purpose": "EA Origin / EA App 的客户端数据与下载缓存。",
+   "advice": "不玩 EA 游戏可整体卸载。缓存部分可清。"
+  },
+  {
+   "id": "anticheat",
+   "name": "反作弊组件",
+   "paths": [
+    "program files\\anticheatexpert",
+    "program files (x86)\\easyanticheat",
+    "program files (x86)\\easyanticheat_eos"
+   ],
+   "names": [
+    "AntiCheatExpert",
+    "EasyAntiCheat",
+    "EasyAntiCheat_EOS",
+    "BattlEye"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "游戏反作弊驱动与组件（腾讯 ACE、EAC、BattlEye）。",
+   "advice": "不要删，删了对应的游戏进不去。卸载游戏时它会一起走。"
+  },
+  {
+   "id": "unreal",
+   "name": "Unreal Engine 缓存",
+   "paths": [
+    "appdata\\roaming\\unreal engine"
+   ],
+   "names": [
+    "Unreal Engine"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "虚幻引擎的通用数据缓存（崩溃报告、DDC 派生数据等）。",
+   "advice": "做 UE 开发不要删 DerivedDataCache；不做 UE 开发的残留可清。"
+  },
+  {
+   "id": "unity_cache",
+   "name": "Unity 编辑器缓存",
+   "paths": [
+    "appdata\\locallow\\unity"
+   ],
+   "names": [
+    "Unity"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "Unity 编辑器的缓存与部分游戏存档。",
+   "advice": "做 Unity 开发保留；卸载了 Unity 可清。注意里面可能混有游戏存档。"
+  },
+  {
+   "id": "unity_saves",
+   "name": "Unity 游戏存档",
+   "keywords": [
+    "locallow"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "LocalLow 下按厂商名命名的目录，绝大多数是 Unity 引擎游戏的存档与设置。",
+   "advice": "删除等于删档。确认该游戏不再玩再删，且建议先备份存档。"
+  },
+  {
+   "id": "game_input",
+   "name": "Microsoft GameInput",
+   "paths": [
+    "program files\\microsoft gameinput"
+   ],
+   "names": [
+    "Microsoft GameInput"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "Windows 游戏手柄/输入设备统一接口。",
+   "advice": "不要删，删了手柄可能失灵。"
+  },
+  {
+   "id": "xbox_games",
+   "name": "Xbox 游戏安装目录",
+   "paths": [
+    "\\xboxgames"
+   ],
+   "names": [
+    "XboxGames"
+   ],
+   "kind": "game",
+   "risk": "caution",
+   "purpose": "Xbox 应用安装 PC Game Pass 游戏的默认位置。",
+   "advice": "不要手动删。在 Xbox 应用里卸载，或在「设置→应用」里把游戏移动到别的盘。"
+  },
+  {
+   "id": "game_recorder",
+   "name": "Xbox 录屏缓存",
+   "paths": [
+    "\\gamerecordercache"
+   ],
+   "names": [
+    "GameRecorderCache"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Xbox Game Bar 录制的游戏片段缓存。",
+   "advice": "可清理，里面有想留的录屏先导出。"
+  },
+  {
+   "id": "saved_games",
+   "name": "已保存的游戏",
+   "paths": [
+    "saved games"
+   ],
+   "names": [
+    "Saved Games"
+   ],
+   "kind": "user",
+   "risk": "keep",
+   "purpose": "Windows 标准游戏存档位置，很多游戏把进度存在这里。",
+   "advice": "不要删，删了等于删档。"
+  },
+  {
+   "id": "zomboid",
+   "name": "僵尸毁灭工程",
+   "paths": [
+    "zomboid"
+   ],
+   "names": [
+    "Zomboid"
+   ],
+   "kind": "user",
+   "risk": "keep",
+   "purpose": "《僵尸毁灭工程》的存档、模组和日志。",
+   "advice": "不要删，删了存档就没了。Logs 子目录可单独清。"
+  },
+  {
+   "id": "mumu",
+   "name": "MuMu 模拟器",
+   "paths": [
+    "program files\\mumunxvbox"
+   ],
+   "names": [
+    "MuMuNxVbox"
+   ],
+   "kind": "install",
+   "risk": "migrate",
+   "purpose": "MuMu 手机模拟器及虚拟磁盘镜像，镜像文件动辄几十 GB。",
+   "advice": "不用模拟器就整体卸载。要保留可在模拟器设置里改数据盘路径。"
+  },
+  {
+   "id": "yuzu",
+   "name": "yuzu 模拟器",
+   "paths": [
+    "appdata\\roaming\\yuzu"
+   ],
+   "names": [
+    "yuzu"
+   ],
+   "kind": "game",
+   "risk": "caution",
+   "purpose": "Switch 模拟器 yuzu 的配置、着色器缓存与游戏数据。",
+   "advice": "着色器缓存（shader）可清，但会很卡；nand / save 是模拟系统存档，别删。"
+  },
+  {
+   "id": "mihoyo",
+   "name": "米哈游游戏数据",
+   "paths": [
+    "appdata\\locallow\\mihoyo"
+   ],
+   "names": [
+    "miHoYo"
+   ],
+   "kind": "game",
+   "risk": "caution",
+   "purpose": "《原神》《崩坏：星穹铁道》等米哈游游戏的本地数据与日志。",
+   "advice": "主要是日志和缓存，可清理；游戏本体在别的盘。"
+  },
+  {
+   "id": "chrome_cache",
+   "name": "Chrome 网页缓存",
+   "paths": [
+    "google\\chrome\\user data\\default\\cache"
+   ],
+   "names": [
+    "Cache",
+    "Cache_Data"
+   ],
+   "parents": [
+    "Default",
+    "Chrome"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Chrome 浏览器下载过的网页、图片、脚本缓存，用于加快二次访问。",
+   "advice": "可清理。不影响书签和密码，但网站登录态可能失效，需确认已记住密码。"
+  },
+  {
+   "id": "chrome_code_cache",
+   "name": "Chrome 脚本缓存",
+   "names": [
+    "Code Cache",
+    "JSCodeCache",
+    "WasmCodeCache"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "网页 JavaScript / WebAssembly 的编译结果缓存。",
+   "advice": "可清理，纯性能优化缓存。"
+  },
+  {
+   "id": "chrome_gpu_cache",
+   "name": "浏览器 GPU 缓存",
+   "names": [
+    "GPUCache",
+    "GrShaderCache",
+    "ShaderCache"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "浏览器/应用为 GPU 渲染编译的着色器缓存。",
+   "advice": "可清理，删后自动重建。"
+  },
+  {
+   "id": "chrome_sw",
+   "name": "Service Worker 缓存",
+   "names": [
+    "Service Worker",
+    "CacheStorage",
+    "ScriptCache"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "离线网页应用（PWA）缓存的数据。",
+   "advice": "可清理。删后网页应用需重新联网加载一次。"
+  },
+  {
+   "id": "edge_cache",
+   "name": "Edge 网页缓存",
+   "paths": [
+    "microsoft\\edge\\user data\\default\\cache"
+   ],
+   "names": [
+    "Cache"
+   ],
+   "parents": [
+    "Edge"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Microsoft Edge 的网页缓存。",
+   "advice": "可清理，同 Chrome 注意事项。"
+  },
+  {
+   "id": "firefox_cache",
+   "name": "Firefox 缓存",
+   "paths": [
+    "mozilla\\firefox\\profiles"
+   ],
+   "names": [
+    "cache2",
+    "startupCache",
+    "jumpListCache"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Firefox 的磁盘缓存与启动缓存。",
+   "advice": "可清理，也可在 Firefox「设置→隐私与安全→清除数据」里清。"
+  },
+  {
+   "id": "browser_360",
+   "name": "360 浏览器数据",
+   "paths": [
+    "appdata\\roaming\\360se6",
+    "appdata\\roaming\\360browser"
+   ],
+   "names": [
+    "360se6",
+    "360browser"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "360 安全浏览器 / 极速浏览器的配置与缓存。",
+   "advice": "缓存子目录可清；整个目录删掉会丢失收藏夹和设置。"
+  },
+  {
+   "id": "browser_360safe",
+   "name": "360 安全卫士",
+   "paths": [
+    "appdata\\roaming\\360safe"
+   ],
+   "names": [
+    "360safe"
+   ],
+   "kind": "log",
+   "risk": "caution",
+   "purpose": "360 安全卫士的日志、沙箱、修复备份。",
+   "advice": "日志与沙箱可清。卸载 360 后整个目录可删。"
+  },
+  {
+   "id": "wechat_data",
+   "name": "微信聊天数据",
+   "paths": [
+    "tencent\\wechat",
+    "tencent\\xwechat",
+    "tencent\\androws"
+   ],
+   "names": [
+    "WeChat",
+    "xwechat",
+    "Androws"
+   ],
+   "kind": "user",
+   "risk": "migrate",
+   "purpose": "微信的聊天记录、接收的图片文件、视频和缓存，是最容易悄悄涨到几个 G 的目录。",
+   "advice": "不要直接删。用微信「设置→文件管理→更改」把存储位置改到其他盘，或在「存储空间」里清理。"
+  },
+  {
+   "id": "wechat_appex",
+   "name": "微信小程序/内置浏览器",
+   "paths": [
+    "tencent\\wechatappex"
+   ],
+   "names": [
+    "WeChatAppEx"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "微信小程序与内置浏览器运行时的数据和缓存。",
+   "advice": "缓存部分可清，聊天记录不在这里。"
+  },
+  {
+   "id": "qq_data",
+   "name": "QQ 数据",
+   "paths": [
+    "tencent\\qq"
+   ],
+   "names": [
+    "QQ"
+   ],
+   "parents": [
+    "Tencent"
+   ],
+   "kind": "user",
+   "risk": "migrate",
+   "purpose": "QQ 的聊天记录、接收文件、表情缓存。",
+   "advice": "不要直接删。在 QQ「设置→文件管理」里改个人文件夹位置到其他盘。"
+  },
+  {
+   "id": "tencent_root",
+   "name": "腾讯系软件数据",
+   "paths": [
+    "appdata\\roaming\\tencent"
+   ],
+   "names": [
+    "Tencent"
+   ],
+   "parents": [
+    "Roaming"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "微信、QQ、腾讯视频等腾讯系软件的统一数据根目录。",
+   "advice": "整体不要删。按具体子目录处理，聊天数据请迁移而非删除。"
+  },
+  {
+   "id": "adobe_media_cache",
+   "name": "Adobe 媒体缓存",
+   "paths": [
+    "common\\media cache",
+    "common\\media cache files"
+   ],
+   "names": [
+    "Media Cache",
+    "Media Cache Files"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Premiere / After Effects 导入视频时生成的代理文件和预览缓存。",
+   "advice": "可清理。项目文件本身不受影响，只是下次打开项目要重新生成预览。"
+  },
+  {
+   "id": "adobe_peak",
+   "name": "Adobe 音频峰值文件",
+   "names": [
+    "Peak Files"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Premiere / Audition 为音频生成的波形峰值缓存（.pek / .cfa）。",
+   "advice": "可清理，删后自动重建。"
+  },
+  {
+   "id": "adobe_ame",
+   "name": "Adobe Media Encoder",
+   "paths": [
+    "adobe\\common"
+   ],
+   "names": [
+    "Adobe"
+   ],
+   "parents": [
+    "Roaming"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "Adobe 系列软件的公共配置与缓存目录。",
+   "advice": "不要整体删。里面的 Media Cache / Peak Files 子目录可清。"
+  },
+  {
+   "id": "vscode",
+   "name": "VS Code 数据",
+   "paths": [
+    "appdata\\roaming\\code"
+   ],
+   "names": [
+    "Code"
+   ],
+   "parents": [
+    "Roaming"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "VS Code 的配置、插件和缓存。logs / CachedData / CachedExtensions 是可再生的缓存。",
+   "advice": "logs 与 CachedData 可清；User 目录是你的配置和插件，删了要重装插件。"
+  },
+  {
+   "id": "vscode_cache",
+   "name": "VS Code 缓存",
+   "names": [
+    "CachedData",
+    "CachedExtensions",
+    "CachedExtensionVSIXs",
+    "workspaceStorage"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "VS Code 的渲染进程缓存、插件包缓存与工作区状态。",
+   "advice": "可清理。workspaceStorage 会丢失未保存的工作区状态，一般无碍。"
+  },
+  {
+   "id": "pip_cache",
+   "name": "pip 下载缓存",
+   "paths": [
+    "appdata\\local\\pip",
+    ".cache\\pip"
+   ],
+   "names": [
+    "pip"
+   ],
+   "parents": [
+    "Local"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "pip 下载过的 wheel 包缓存，重装同版本包时不用重新下载。",
+   "advice": "可清理，用命令 pip cache purge 最干净。"
+  },
+  {
+   "id": "npm_cache",
+   "name": "npm 缓存",
+   "paths": [
+    "appdata\\local\\npm-cache",
+    "appdata\\roaming\\npm"
+   ],
+   "names": [
+    "npm-cache",
+    "npm"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "npm 下载过的包缓存，通常会累积到几百 MB 到几个 G。",
+   "advice": "可清理，用 npm cache clean --force。"
+  },
+  {
+   "id": "uv_cache",
+   "name": "uv / Python 包缓存",
+   "names": [
+    "uv",
+    "pnpm",
+    "yarn",
+    "poetry"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "新一代 Python/JS 包管理器的下载缓存。",
+   "advice": "可清理，各自都有 cache clean / prune 命令。"
+  },
+  {
+   "id": "gradle_cache",
+   "name": "Gradle 缓存",
+   "paths": [],
+   "names": [
+    ".gradle",
+    "gradle"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "Gradle 的依赖与构建缓存，往往几个 GB。",
+   "advice": "可以删，下次构建会重新下载依赖（首次会慢）。有 Gradle 守护进程运行时删不干净。",
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "maven_repo",
+   "name": "Maven 本地仓库",
+   "paths": [
+    ".m2"
+   ],
+   "names": [
+    ".m2"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "Java Maven 下载的依赖库。",
+   "advice": "可清理但需重新下载。不写 Java 则可直接删。"
+  },
+  {
+   "id": "nuget_cache",
+   "name": "NuGet 包缓存",
+   "paths": [
+    ".nuget"
+   ],
+   "names": [
+    ".nuget"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": ".NET 的包管理缓存。",
+   "advice": "可用 dotnet nuget locals all --clear 清理。"
+  },
+  {
+   "id": "hf_cache",
+   "name": "AI 模型缓存",
+   "paths": [
+    ".cache\\huggingface"
+   ],
+   "names": [
+    "huggingface",
+    "modelscope",
+    "torch",
+    "transformers"
+   ],
+   "kind": "model",
+   "risk": "caution",
+   "purpose": "HuggingFace / ModelScope 下载的模型权重，单个模型常 1~10 GB。",
+   "advice": "不再做 AI 推理可删；还在用则务必保留，删了要重新下载几个 G。"
+  },
+  {
+   "id": "playwright",
+   "name": "Playwright 浏览器",
+   "names": [
+    "ms-playwright"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "Playwright 自动化测试下载的 Chromium / Firefox / WebKit 浏览器。",
+   "advice": "不做自动化测试可删，约 1 GB。删了跑测试会自动重新下载。"
+  },
+  {
+   "id": "android_sdk",
+   "name": "Android SDK",
+   "paths": [
+    "appdata\\local\\android"
+   ],
+   "names": [
+    "Android"
+   ],
+   "parents": [
+    "Local"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "Android 开发 SDK：平台、构建工具、模拟器镜像。",
+   "advice": "不做安卓开发可删（数 GB）。system-images 里的模拟器镜像最大，可只删镜像。"
+  },
+  {
+   "id": "android_studio_proj",
+   "name": "Android Studio 项目",
+   "paths": [
+    "androidstudioprojects"
+   ],
+   "names": [
+    "AndroidStudioProjects"
+   ],
+   "kind": "user",
+   "risk": "keep",
+   "purpose": "你自己创建的安卓项目源码。",
+   "advice": "不要删。里面的 build / .gradle 缓存子目录可清。"
+  },
+  {
+   "id": "godot",
+   "name": "Godot 引擎数据",
+   "paths": [
+    "appdata\\roaming\\godot"
+   ],
+   "names": [
+    "Godot"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "Godot 编辑器的导出模板、项目列表和配置。导出模板单个 500 MB~1 GB。",
+   "advice": "导出模板可在编辑器「管理导出模板」里删掉不用的版本，或改路径到其他盘。配置别删。"
+  },
+  {
+   "id": "cocos",
+   "name": "Cocos 引擎",
+   "paths": [
+    "appdata\\roaming\\cocos",
+    "appdata\\roaming\\cocoscreator",
+    "appdata\\roaming\\cocosdashboard"
+   ],
+   "names": [
+    "Cocos",
+    "CocosCreator",
+    "CocosDashboard"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "Cocos Creator 编辑器配置、缓存与引擎版本库。",
+   "advice": "不用 Cocos 开发可删。还在用就只清缓存子目录。"
+  },
+  {
+   "id": "blender",
+   "name": "Blender 数据",
+   "paths": [
+    "appdata\\roaming\\blender foundation"
+   ],
+   "names": [
+    "Blender Foundation"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "Blender 的配置、插件与最近文件记录。",
+   "advice": "体积通常很小。卸载 Blender 后可删。"
+  },
+  {
+   "id": "vs_setup",
+   "name": "Visual Studio 安装程序",
+   "paths": [
+    "appdata\\local\\microsoft\\visualstudio",
+    "visual studio setup"
+   ],
+   "names": [
+    "Visual Studio Setup"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "Visual Studio Installer 的下载缓存与安装数据。",
+   "advice": "可用 Visual Studio Installer 的「清理下载缓存」处理，不要手动删。"
+  },
+  {
+   "id": "vs_pkgcache",
+   "name": "VS / VC++ 安装包缓存",
+   "paths": [
+    "programdata\\package cache"
+   ],
+   "names": [
+    "Package Cache"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "Visual Studio、VC++ 运行库的安装包备份，卸载或修复时需要。",
+   "advice": "不建议手动删，删了 VS 可能无法修复。磁盘极紧张时才考虑。"
+  },
+  {
+   "id": "msbuild",
+   "name": "MSBuild",
+   "paths": [
+    "program files\\msbuild",
+    "program files (x86)\\msbuild"
+   ],
+   "names": [
+    "MSBuild"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": ".NET 项目的构建引擎，很多开发工具的依赖。",
+   "advice": "保留，体积不大。"
+  },
+  {
+   "id": "ref_assemblies",
+   "name": ".NET 引用程序集",
+   "names": [
+    "Reference Assemblies"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "编译 .NET 程序时引用的目标框架程序集。",
+   "advice": "保留，删了项目编译不过。"
+  },
+  {
+   "id": "sql_server",
+   "name": "SQL Server",
+   "paths": [
+    "microsoft sql server"
+   ],
+   "names": [
+    "Microsoft SQL Server"
+   ],
+   "kind": "db",
+   "risk": "caution",
+   "purpose": "SQL Server 数据库引擎与你的数据库文件（.mdf / .ldf）。",
+   "advice": "不用数据库就卸载。数据库文件删了数据就没了，务必先备份。"
+  },
+  {
+   "id": "nodejs",
+   "name": "Node.js 运行时",
+   "paths": [
+    "program files\\nodejs"
+   ],
+   "names": [
+    "nodejs"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "Node.js 运行时本体。",
+   "advice": "前端开发必需，保留。npm 的缓存在 AppData 里可单独清。"
+  },
+  {
+   "id": "git",
+   "name": "Git",
+   "paths": [
+    "program files\\git"
+   ],
+   "names": [
+    "Git"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "Git 版本控制工具本体。",
+   "advice": "保留。你的代码仓库在别处，不在这里。"
+  },
+  {
+   "id": "source_repos",
+   "name": "源代码目录",
+   "paths": [
+    "\\source"
+   ],
+   "names": [
+    "source"
+   ],
+   "kind": "user",
+   "risk": "keep",
+   "purpose": "你自己存放的源代码。",
+   "advice": "不要删。里面的 node_modules / build / .git 缓存可清理。"
+  },
+  {
+   "id": "idleforge",
+   "name": "IdleForge 项目",
+   "paths": [
+    "\\idleforge"
+   ],
+   "names": [
+    "IdleForge"
+   ],
+   "kind": "user",
+   "risk": "keep",
+   "purpose": "你自己开发的放置类游戏辅助工具项目。",
+   "advice": "保留。里面的 __pycache__ / build / dist 可清。"
+  },
+  {
+   "id": "baidu_netdisk",
+   "name": "百度网盘",
+   "paths": [
+    "baiduyunguanjia",
+    "appdata\\roaming\\baidu"
+   ],
+   "names": [
+    "BaiduYunGuanjia",
+    "baidu",
+    "BaiduYunKernel"
+   ],
+   "kind": "cache",
+   "risk": "migrate",
+   "purpose": "百度网盘的下载文件与缓存。",
+   "advice": "在百度网盘「设置→下载」里改下载目录到其他盘，缓存可清。"
+  },
+  {
+   "id": "quark",
+   "name": "夸克网盘",
+   "paths": [
+    "appdata\\local\\quark-cloud-drive",
+    "appdata\\roaming\\quark"
+   ],
+   "names": [
+    "quark-cloud-drive",
+    "Quark"
+   ],
+   "kind": "cache",
+   "risk": "migrate",
+   "purpose": "夸克网盘/浏览器的缓存与下载文件。",
+   "advice": "在设置里改下载目录到其他盘。更新残留的 -updater 目录可删。"
+  },
+  {
+   "id": "ali_drive",
+   "name": "阿里云盘",
+   "paths": [
+    "appdata\\roaming\\adrive"
+   ],
+   "names": [
+    "aDrive"
+   ],
+   "kind": "cache",
+   "risk": "migrate",
+   "purpose": "阿里云盘客户端的缓存与下载文件。",
+   "advice": "在设置里改下载目录到其他盘。"
+  },
+  {
+   "id": "thunder",
+   "name": "迅雷",
+   "paths": [
+    "thunder network",
+    "appdata\\roaming\\thunderx"
+   ],
+   "names": [
+    "Thunder Network",
+    "Thunderx",
+    "thunder"
+   ],
+   "kind": "cache",
+   "risk": "migrate",
+   "purpose": "迅雷的下载文件、种子缓存和影音缓存。",
+   "advice": "在迅雷「设置→下载目录」改到别的盘。已下载完的任务文件可手动整理。"
+  },
+  {
+   "id": "tencent_dl",
+   "name": "腾讯下载组件",
+   "paths": [
+    "appdata\\roaming\\tpdownloadproxy"
+   ],
+   "names": [
+    "TPDownloadProxy"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "腾讯系软件（应用宝、wegame 等）的 P2P 下载加速缓存。",
+   "advice": "可清理，是纯下载缓存。"
+  },
+  {
+   "id": "onedrive",
+   "name": "OneDrive",
+   "paths": [
+    "onedrive",
+    "microsoft onedrive"
+   ],
+   "names": [
+    "OneDrive",
+    "Microsoft OneDrive"
+   ],
+   "kind": "user",
+   "risk": "migrate",
+   "purpose": "微软云盘的同步文件夹与同步状态数据库。",
+   "advice": "不用 OneDrive 可卸载；要保留可在设置里改同步文件夹位置到其他盘。"
+  },
+  {
+   "id": "doubao",
+   "name": "豆包",
+   "paths": [
+    "appdata\\local\\doubao",
+    "\\doubao"
+   ],
+   "names": [
+    "Doubao"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "字节豆包 AI 客户端的模型、会话缓存与更新包。",
+   "advice": "缓存与 updater 残留可清；删后首次启动可能需重新下载本地模型。"
+  },
+  {
+   "id": "deepseek",
+   "name": "DeepSeek 客户端",
+   "paths": [
+    "appdata\\local\\@deepseek-ai"
+   ],
+   "names": [
+    "@deepseek-ai"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "DeepSeek 桌面客户端的数据与更新包。",
+   "advice": "可清理，纯客户端缓存和更新残留。"
+  },
+  {
+   "id": "workbuddy",
+   "name": "WorkBuddy 数据",
+   "paths": [
+    "appdata\\roaming\\workbuddy",
+    "\\workbuddy"
+   ],
+   "names": [
+    "WorkBuddy"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "WorkBuddy 的工作区、会话与缓存数据。",
+   "advice": "AppData\\Local\\@genieworkbuddy-desktop-updater 这类更新残留可删；Roaming 下的数据含工作区，删除前确认。"
+  },
+  {
+   "id": "zcode",
+   "name": "ZCode 客户端",
+   "paths": [
+    "appdata\\local\\@zcodedesktop-updater",
+    "appdata\\roaming\\zcode"
+   ],
+   "names": [
+    "ZCode",
+    "@zcodedesktop-updater"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "ZCode 编辑器的数据与升级残留包。",
+   "advice": "updater 目录可删，是升级后剩下的旧安装包。"
+  },
+  {
+   "id": "heybox",
+   "name": "小黑盒",
+   "paths": [
+    "appdata\\roaming\\@heybox-app",
+    "appdata\\roaming\\heybox"
+   ],
+   "names": [
+    "@heybox-app",
+    "heybox-acc-electron",
+    "heybox-pc-launcher"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "小黑盒游戏社区客户端的缓存与加速器组件。",
+   "advice": "缓存可清，账号会退出登录需重新登录。"
+  },
+  {
+   "id": "accelerator",
+   "name": "游戏加速器",
+   "paths": [
+    "appdata\\roaming\\ngrlauncher",
+    "appdata\\roaming\\xlacc",
+    "appdata\\roaming\\lfacc",
+    "appdata\\roaming\\leigod"
+   ],
+   "names": [
+    "NGRLauncher",
+    "xlacc",
+    "lfacc",
+    "leigod",
+    "leigod_person_7002"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "各类游戏加速器（奇游、迅游、雷神等）的客户端数据与加速日志。",
+   "advice": "装了多个加速器建议卸载到只剩一个。卸载后残留目录可删。"
+  },
+  {
+   "id": "clash",
+   "name": "Clash for Windows",
+   "paths": [],
+   "names": [],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "代理工具，含配置与订阅缓存。",
+   "advice": "不要删。日志与旧的订阅缓存在软件里可以清。",
+   "keywords": [
+    "clash"
+   ],
+   "parents": []
+  },
+  {
+   "id": "huorong",
+   "name": "火绒安全",
+   "paths": [
+    "program files (x86)\\huorong",
+    "programdata\\huorong"
+   ],
+   "names": [
+    "Huorong"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "火绒安全软件本体、病毒库与隔离区。",
+   "advice": "隔离区（Sysdiag\\Quarantine）可在火绒界面里清空，不要手动删整个目录。"
+  },
+  {
+   "id": "mcafee",
+   "name": "McAfee 杀毒",
+   "paths": [
+    "program files\\mcafee",
+    "programdata\\mcafee"
+   ],
+   "names": [
+    "McAfee"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "预装的 McAfee 杀毒软件与病毒库。",
+   "advice": "不用就卸载，Windows 自带的 Defender 已足够。"
+  },
+  {
+   "id": "ccleaner",
+   "name": "CCleaner",
+   "paths": [
+    "program files\\ccleaner",
+    "appdata\\roaming\\ccleaner"
+   ],
+   "names": [
+    "CCleaner"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "CCleaner 本体与配置。",
+   "advice": "体积很小，保留即可。不卸载就不删。"
+  },
+  {
+   "id": "wps_kingsoft",
+   "name": "WPS Office",
+   "paths": [
+    "appdata\\roaming\\kingsoft"
+   ],
+   "names": [
+    "kingsoft"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "WPS Office 的配置、模板和缓存。",
+   "advice": "缓存子目录可清，配置删了会重置 WPS 设置。"
+  },
+  {
+   "id": "potplayer",
+   "name": "PotPlayer",
+   "paths": [
+    "appdata\\roaming\\daum"
+   ],
+   "names": [
+    "Daum"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "PotPlayer 播放器的配置、截图与缓存。",
+   "advice": "Capture（截图）目录可整理，配置别删。"
+  },
+  {
+   "id": "klite",
+   "name": "K-Lite 解码器包",
+   "paths": [
+    "program files (x86)\\k-lite codec pack"
+   ],
+   "names": [
+    "K-Lite Codec Pack"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "视频解码器集合，播放器靠它解码各种格式。",
+   "advice": "保留，体积不大，删了视频可能放不出来。"
+  },
+  {
+   "id": "obs",
+   "name": "OBS 录屏",
+   "paths": [
+    "programdata\\obs-studio",
+    "programdata\\obs-studio-hook"
+   ],
+   "names": [
+    "obs-studio"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "OBS 的插件数据、日志和崩溃转储。",
+   "advice": "logs 与 crash 目录可清。录制的视频在「视频」文件夹，不在这里。"
+  },
+  {
+   "id": "iqiyi",
+   "name": "爱奇艺",
+   "paths": [
+    "program files (x86)\\iqiyi video"
+   ],
+   "names": [
+    "IQIYI Video"
+   ],
+   "kind": "cache",
+   "risk": "migrate",
+   "purpose": "爱奇艺客户端与缓存的离线视频。",
+   "advice": "在设置里改下载缓存目录，或直接卸载用网页版。"
+  },
+  {
+   "id": "netease",
+   "name": "网易系软件",
+   "paths": [
+    "programdata\\netease",
+    "program files (x86)\\netease"
+   ],
+   "names": [
+    "Netease",
+    "NeteaseWinDA",
+    "NetEaseWinDA"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "网易云音乐、网易游戏等的下载缓存与更新数据。",
+   "advice": "缓存可清，也可在客户端设置里改缓存目录。"
+  },
+  {
+   "id": "meitu",
+   "name": "美图系软件",
+   "paths": [
+    "programdata\\meitu",
+    "program files (x86)\\meitu"
+   ],
+   "names": [
+    "Meitu"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "美图秀秀等软件的数据与缓存。",
+   "advice": "缓存可清，不常用可直接卸载。"
+  },
+  {
+   "id": "oray",
+   "name": "花生壳 / 向日葵",
+   "paths": [
+    "programdata\\oray",
+    "programdata\\orayclient"
+   ],
+   "names": [
+    "Oray",
+    "OrayClient",
+    "Sun"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "花生壳内网穿透与向日葵远程控制的客户端数据。",
+   "advice": "不用远程控制/内网穿透可卸载。"
+  },
+  {
+   "id": "ghelper",
+   "name": "GHelper 华硕工具",
+   "paths": [
+    "programdata\\ghelper"
+   ],
+   "names": [
+    "GHelper"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "华硕笔记本的轻量控制工具（性能模式、风扇曲线）。",
+   "advice": "保留，体积很小。"
+  },
+  {
+   "id": "asus",
+   "name": "华硕奥创 / 灯光服务",
+   "paths": [
+    "program files\\asus",
+    "program files (x86)\\asus",
+    "program files (x86)\\lightingservice"
+   ],
+   "names": [
+    "ASUS",
+    "ASUSTeK COMPUTER INC",
+    "LightingService"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "华硕 Armoury Crate 奥创中心与 RGB 灯光控制服务。",
+   "advice": "不用 RGB 灯效可卸载（通常几百 MB）。卸载后要在 BIOS 或 GHelper 里管性能模式。"
+  },
+  {
+   "id": "oracle_java",
+   "name": "Oracle Java",
+   "paths": [
+    "programdata\\oracle"
+   ],
+   "names": [
+    "Oracle"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "Oracle Java 运行环境及其更新缓存。",
+   "advice": "不用 Java 可卸载。Java 的更新缓存可清，常有几个 G。"
+  },
+  {
+   "id": "apple",
+   "name": "Apple 软件",
+   "paths": [
+    "programdata\\apple"
+   ],
+   "names": [
+    "Apple"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "iTunes / iCloud 的组件数据。",
+   "advice": "不用 iTunes/iCloud 可卸载。"
+  },
+  {
+   "id": "wemod",
+   "name": "WeMod / 修改器",
+   "paths": [
+    "appdata\\roaming\\wemod"
+   ],
+   "names": [
+    "WeMod"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "游戏修改器客户端的数据与缓存。",
+   "advice": "缓存可清。"
+  },
+  {
+   "id": "cheat_engine",
+   "name": "Cheat Engine",
+   "paths": [
+    "program files\\cheat engine 7.5"
+   ],
+   "names": [
+    "Cheat Engine 7.5"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "内存修改工具。",
+   "advice": "不用了可卸载。注意杀软常会报毒，属正常现象。"
+  },
+  {
+   "id": "operaplayer",
+   "name": "Opera 浏览器",
+   "paths": [
+    "appdata\\roaming\\opera software"
+   ],
+   "names": [
+    "Opera Software"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Opera 浏览器的配置与缓存。",
+   "advice": "缓存子目录可清。"
+  },
+  {
+   "id": "mozilla_root",
+   "name": "Mozilla 数据",
+   "paths": [
+    "appdata\\roaming\\mozilla"
+   ],
+   "names": [
+    "Mozilla"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "Firefox / Thunderbird 的配置与缓存总目录。",
+   "advice": "不要整体删。Profiles 下各 profile 里的 cache2 可清。"
+  },
+  {
+   "id": "google_root",
+   "name": "Google 系软件数据",
+   "paths": [
+    "appdata\\local\\google"
+   ],
+   "names": [
+    "Google"
+   ],
+   "parents": [
+    "Local"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "Chrome / Drive / Earth 等 Google 软件的数据。",
+   "advice": "Chrome\\User Data\\Default 下的 Cache / Code Cache / Service Worker 可清，其余是账号和插件数据。"
+  },
+  {
+   "id": "microsoft_defender",
+   "name": "Windows Defender",
+   "paths": [
+    "program files\\windows defender",
+    "programdata\\microsoft\\windows defender"
+   ],
+   "names": [
+    "Windows Defender"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "系统自带杀毒软件的定义库与扫描缓存。",
+   "advice": "保留。定义缓存会在日常维护中自动清理。"
+  },
+  {
+   "id": "microsoft_vs_common",
+   "name": "Visual Studio 共享组件",
+   "paths": [
+    "programdata\\microsoft\\visualstudio",
+    "programdata\\microsoft visual studio"
+   ],
+   "names": [
+    "Microsoft Visual Studio"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "Visual Studio 的共享缓存、日志与组件包。",
+   "advice": "Packages 子目录可能有数 GB 的下载包，可用 VS Installer 清理。"
+  },
+  {
+   "id": "generic_cache",
+   "name": "通用缓存目录",
+   "keywords": [
+    "cache",
+    "cachedata",
+    "cachestorage",
+    "blob_storage",
+    "session storage",
+    "local storage"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "名称含 Cache 的目录，几乎都是程序为提高速度生成的缓存。",
+   "advice": "一般可安全清理，程序会在需要时自动重建。"
+  },
+  {
+   "id": "generic_log",
+   "name": "通用日志目录",
+   "keywords": [
+    "logs",
+    "log",
+    "crashpad",
+    "crashpad_database"
+   ],
+   "kind": "log",
+   "risk": "safe",
+   "purpose": "程序运行时记录的日志文件与崩溃上报数据。",
+   "advice": "可清理，不影响程序功能。"
+  },
+  {
+   "id": "generic_temp",
+   "name": "通用临时目录",
+   "keywords": [
+    "temp",
+    "tmp",
+    "cache_temp"
+   ],
+   "kind": "temp",
+   "risk": "safe",
+   "purpose": "临时文件，程序本应在退出时自行清理。",
+   "advice": "可清理，被占用的跳过。"
+  },
+  {
+   "id": "generic_dump",
+   "name": "崩溃转储",
+   "keywords": [
+    "crashdumps",
+    "minidump",
+    "dumps",
+    "crashreport"
+   ],
+   "kind": "log",
+   "risk": "safe",
+   "purpose": "程序崩溃时的内存快照，供开发者调试。",
+   "advice": "可清理。"
+  },
+  {
+   "id": "generic_backup",
+   "name": "备份目录",
+   "keywords": [
+    "backup",
+    "backups",
+    "old",
+    "bak"
+   ],
+   "kind": "backup",
+   "risk": "caution",
+   "purpose": "程序自动生成的旧版本备份。",
+   "advice": "确认程序当前运行正常后可清理，建议先看修改日期再决定。"
+  },
+  {
+   "id": "generic_shader",
+   "name": "着色器缓存",
+   "keywords": [
+    "shader",
+    "shadercache",
+    "vkpipeline",
+    "pipelinecache"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "图形着色器编译缓存，用于消除游戏卡顿。",
+   "advice": "可清理，删后首次运行需重新编译，会短暂变慢。"
+  },
+  {
+   "id": "generic_download",
+   "name": "下载暂存",
+   "keywords": [
+    "downloading",
+    "downloads",
+    "downloader"
+   ],
+   "kind": "temp",
+   "risk": "caution",
+   "purpose": "正在下载或下载中断的临时文件。",
+   "advice": "确认没有正在进行的下载后可清理。"
+  },
+  {
+   "id": "programfiles_root",
+   "name": "程序安装目录",
+   "paths": [
+    "program files",
+    "program files (x86)"
+   ],
+   "names": [
+    "Program Files",
+    "Program Files (x86)"
+   ],
+   "kind": "install",
+   "risk": "danger",
+   "purpose": "64 位 / 32 位软件的默认安装位置。",
+   "advice": "禁止手动删文件夹。要移除软件必须在「应用和功能」里卸载。",
+   "container": true
+  },
+  {
+   "id": "programdata_root",
+   "name": "程序共享数据",
+   "paths": [
+    "programdata"
+   ],
+   "names": [
+    "ProgramData"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "所有用户共享的程序数据：病毒库、日志、下载缓存、游戏数据。",
+   "advice": "不要整体删。里面的日志、下载缓存子目录通常可清。",
+   "container": true
+  },
+  {
+   "id": "users_public",
+   "name": "公共用户目录",
+   "paths": [
+    "users\\public"
+   ],
+   "names": [
+    "Public"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "所有用户共享的文档、图片、视频。",
+   "advice": "可整理，删之前确认里面没有别人要的文件。"
+  },
+  {
+   "id": "user_desktop",
+   "name": "桌面",
+   "paths": [
+    "\\desktop"
+   ],
+   "names": [
+    "Desktop"
+   ],
+   "kind": "user",
+   "risk": "keep",
+   "purpose": "桌面上存放的文件。",
+   "advice": "不要删。可在文件夹属性「位置」选项卡改到别的盘。"
+  },
+  {
+   "id": "user_downloads",
+   "name": "下载文件夹",
+   "paths": [
+    "\\downloads"
+   ],
+   "names": [
+    "Downloads"
+   ],
+   "kind": "user",
+   "risk": "caution",
+   "purpose": "浏览器和各类软件默认下载位置，最容易堆积安装包和压缩包。",
+   "advice": "手动整理最有效。可在文件夹属性「位置」改到别的盘，一劳永逸。"
+  },
+  {
+   "id": "user_documents",
+   "name": "文档",
+   "paths": [
+    "\\documents"
+   ],
+   "names": [
+    "Documents",
+    "My Documents"
+   ],
+   "kind": "user",
+   "risk": "keep",
+   "purpose": "个人文档与很多软件的默认保存位置。",
+   "advice": "不要删。可在文件夹属性「位置」改到别的盘。"
+  },
+  {
+   "id": "user_pictures",
+   "name": "图片",
+   "paths": [
+    "\\pictures"
+   ],
+   "names": [
+    "Pictures"
+   ],
+   "kind": "user",
+   "risk": "keep",
+   "purpose": "个人图片、截图、游戏截图。",
+   "advice": "不要删。截图子目录可整理。"
+  },
+  {
+   "id": "user_videos",
+   "name": "视频",
+   "paths": [
+    "\\videos"
+   ],
+   "names": [
+    "Videos"
+   ],
+   "kind": "user",
+   "risk": "keep",
+   "purpose": "个人视频与录屏（如 OBS、Xbox 录制的视频）。",
+   "advice": "不要删。录屏可看完后转移到别的盘或删除。"
+  },
+  {
+   "id": "win_recovery",
+   "name": "Windows 恢复环境",
+   "paths": [
+    "\\$winreagent",
+    "\\recovery"
+   ],
+   "names": [
+    "$WinREAgent",
+    "Recovery"
+   ],
+   "kind": "system",
+   "risk": "danger",
+   "purpose": "Windows 恢复环境（WinRE）相关文件。",
+   "advice": "禁止删除，删了系统出问题无法修复。"
+  },
+  {
+   "id": "mntemp",
+   "name": "mntemp 临时",
+   "paths": [
+    "programdata\\mntemp"
+   ],
+   "names": [
+    "mntemp"
+   ],
+   "kind": "temp",
+   "risk": "safe",
+   "purpose": "迅雷/网盘类软件的下载临时目录。",
+   "advice": "可清理，是下载中断留下的碎片。"
+  },
+  {
+   "id": "windows_store_cache",
+   "name": "商店缓存",
+   "paths": [
+    "appdata\\local\\microsoft\\windows\\caches"
+   ],
+   "names": [],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Windows 商店与开始菜单的缓存数据。",
+   "advice": "可清理。"
+  },
+  {
+   "id": "rdp_cache",
+   "name": "远程桌面缓存",
+   "paths": [
+    "terminal server client"
+   ],
+   "names": [
+    "Terminal Server Client"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "远程桌面连接的缓存位图与凭证缓存。",
+   "advice": "可清理，会同时清掉保存的远程桌面密码。"
+  },
+  {
+   "id": "font_cache",
+   "name": "字体缓存",
+   "names": [
+    "GDIPFONTCACHEV1.DAT",
+    "FontCache"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "GDI+ 字体缓存，加快文字渲染。",
+   "advice": "可清理，系统自动重建。"
+  },
+  {
+   "id": "webcache_db",
+   "name": "IE 网页缓存数据库",
+   "names": [
+    "WebCache",
+    "WebCacheV01.dat",
+    "Web Data"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Internet Explorer / 旧 Edge 的网页缓存数据库。",
+   "advice": "可清理。"
+  },
+  {
+   "id": "python_dir",
+   "name": "Python 环境",
+   "paths": [
+    "\\python27",
+    "appdata\\local\\programs\\python"
+   ],
+   "names": [
+    "Python27"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "Python 解释器与已安装的第三方库。",
+   "advice": "确认不用的旧版本（如 Python 2.7）可卸载。当前在用的版本保留。"
+  },
+  {
+   "id": "local_programs",
+   "name": "用户级程序",
+   "paths": [
+    "appdata\\local\\programs"
+   ],
+   "names": [
+    "Programs"
+   ],
+   "parents": [
+    "Local"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "装在用户目录而非 Program Files 的软件（多为免管理员安装，如 VS Code、Python、各类 Electron 客户端）。",
+   "advice": "不要整体删。按具体软件判断，不用的可在「应用和功能」里卸载。"
+  },
+  {
+   "id": "elevated_diag",
+   "name": "诊断数据",
+   "paths": [
+    "appdata\\local\\elevateddiagnostics"
+   ],
+   "names": [
+    "ElevatedDiagnostics"
+   ],
+   "kind": "log",
+   "risk": "safe",
+   "purpose": "Windows 提权诊断日志。",
+   "advice": "可清理。"
+  },
+  {
+   "id": "usrclass",
+   "name": "用户类注册表缓存",
+   "names": [
+    "UsrClass.dat"
+   ],
+   "kind": "system",
+   "risk": "danger",
+   "purpose": "用户级别的 COM 类注册数据文件。",
+   "advice": "禁止删除，删了设置和开始菜单都会出问题。"
+  },
+  {
+   "id": "recent_items",
+   "name": "最近使用记录",
+   "paths": [
+    "roaming\\microsoft\\windows\\recent",
+    "\\recent"
+   ],
+   "names": [
+    "Recent",
+    "JumpLists"
+   ],
+   "kind": "user",
+   "risk": "safe",
+   "purpose": "最近打开的文档列表与跳转列表，属于隐私痕迹。",
+   "advice": "可清理，不影响文件本身。"
+  },
+  {
+   "id": "steam_common",
+   "name": "Steam 游戏本体",
+   "kind": "game",
+   "risk": "keep",
+   "paths": [
+    "steamapps\\common"
+   ],
+   "purpose": "Steam 已安装游戏的文件，是游戏库里真正的主体。",
+   "advice": "不要删。要腾空间请在 Steam 里右键游戏→卸载，或把整个库迁移到其他盘。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "steam_shadercache",
+   "name": "Steam 着色器缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "steamapps\\shadercache"
+   ],
+   "purpose": "预先编译好的显卡着色器，用来加快游戏加载。",
+   "advice": "可以删，下次进游戏会重新编译，首次加载略慢几秒。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "steam_depotcache",
+   "name": "Steam depot 缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "steamapps\\depotcache"
+   ],
+   "purpose": "游戏更新包的本地缓存，用于增量更新。",
+   "advice": "可以删，下次更新会重新下载。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "steam_temp",
+   "name": "Steam 临时目录",
+   "kind": "temp",
+   "risk": "safe",
+   "paths": [
+    "steamapps\\temp",
+    "steam\\temp"
+   ],
+   "purpose": "Steam 自身的临时文件。",
+   "advice": "可直接清理。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "steam_logs",
+   "name": "Steam 日志",
+   "kind": "log",
+   "risk": "safe",
+   "paths": [
+    "steam\\logs"
+   ],
+   "purpose": "客户端运行日志，排查登录或下载问题时用。",
+   "advice": "可直接清理。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "epic_launcher",
+   "name": "Epic 启动器",
+   "kind": "install",
+   "risk": "keep",
+   "paths": [
+    "epic games\\launcher"
+   ],
+   "purpose": "Epic Games 启动器本体。",
+   "advice": "不要删，要移除请走系统卸载。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "epic_patching",
+   "name": "Epic 更新补丁缓存",
+   "kind": "temp",
+   "risk": "safe",
+   "paths": [
+    "epic games\\launcher\\patching"
+   ],
+   "purpose": "游戏更新时的补丁暂存目录。",
+   "advice": "没有正在更新的游戏时可直接清理。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "epic_egstore",
+   "name": "Epic 游戏存档 .egstore",
+   "kind": "user",
+   "risk": "caution",
+   "names": [
+    "egstore"
+   ],
+   "purpose": "Epic 版游戏的存档与授权数据目录。",
+   "advice": "删了进度会丢。要腾空间请整体卸载游戏，不要单独删这个目录。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "epic_directx",
+   "name": "Epic 运行库安装包",
+   "kind": "install",
+   "risk": "safe",
+   "paths": [
+    "epic games\\directxredist"
+   ],
+   "purpose": "DirectX 运行库安装器，安装游戏时调用一次。",
+   "advice": "可以删。万一以后有游戏需要，系统会自己再装。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "gog_downloads",
+   "name": "GOG 下载缓存",
+   "kind": "temp",
+   "risk": "safe",
+   "paths": [
+    "gog galaxy\\downloads"
+   ],
+   "purpose": "GOG Galaxy 的游戏安装包下载缓存。",
+   "advice": "安装完即可删除，离线安装包另存他处的话先确认。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "wegame",
+   "name": "WeGame 游戏",
+   "kind": "game",
+   "risk": "keep",
+   "paths": [
+    "wegameapps"
+   ],
+   "names": [
+    "wegame"
+   ],
+   "purpose": "WeGame 平台的游戏安装目录。",
+   "advice": "不要手动删，在 WeGame 里卸载或迁移。",
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "unity_data",
+   "name": "Unity 游戏资源目录",
+   "kind": "game",
+   "risk": "keep",
+   "names": [],
+   "keywords": [
+    "_data"
+   ],
+   "purpose": "Unity 游戏的资源与程序集目录（形如 Xxx_Data）。",
+   "advice": "游戏本体的一部分，删了游戏就打不开。",
+   "paths": [],
+   "parents": []
+  },
+  {
+   "id": "unity_mono",
+   "name": "Unity Mono 运行时",
+   "kind": "install",
+   "risk": "keep",
+   "names": [
+    "monobleedingedge"
+   ],
+   "purpose": "Unity 游戏自带的 Mono 运行环境。",
+   "advice": "不要删，删了游戏无法启动。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "unity_burst",
+   "name": "Unity Burst 调试信息",
+   "kind": "log",
+   "risk": "safe",
+   "keywords": [
+    "burstdebuginformation"
+   ],
+   "purpose": "Unity 生成的调试符号，只有排查崩溃时有用。",
+   "advice": "可以删，不影响游戏运行。",
+   "paths": [],
+   "names": [],
+   "parents": []
+  },
+  {
+   "id": "unity_streaming",
+   "name": "Unity StreamingAssets",
+   "kind": "game",
+   "risk": "keep",
+   "names": [
+    "streamingassets"
+   ],
+   "purpose": "游戏运行时直接读取的原始资源（视频、配置、Mod 入口）。",
+   "advice": "不要删。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "unreal_saved",
+   "name": "游戏 Saved 目录",
+   "kind": "user",
+   "risk": "caution",
+   "names": [
+    "saved"
+   ],
+   "parents": [
+    "binaries",
+    "content"
+   ],
+   "purpose": "Unreal 游戏的存档、日志与崩溃报告。里面常混着几个 GB 的历史日志。",
+   "advice": "不要整删。只清 Saved\\Logs 与 Saved\\Crashes，存档在 SaveGames 里要保留。",
+   "paths": [],
+   "keywords": []
+  },
+  {
+   "id": "unreal_logs",
+   "name": "游戏日志",
+   "kind": "log",
+   "risk": "safe",
+   "paths": [
+    "saved\\logs"
+   ],
+   "purpose": "游戏运行日志，随时间累积。",
+   "advice": "可直接清理。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "unreal_crashes",
+   "name": "游戏崩溃报告",
+   "kind": "log",
+   "risk": "safe",
+   "paths": [
+    "saved\\crashes"
+   ],
+   "purpose": "崩溃时生成的报告与内存快照。",
+   "advice": "可直接清理。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "unreal_intermediate",
+   "name": "Unreal 构建中间产物",
+   "kind": "temp",
+   "risk": "safe",
+   "paths": [
+    "intermediate"
+   ],
+   "purpose": "引擎编译着色器与资源时的中间文件，可随时重建。",
+   "advice": "可以删，下次启动或打包时会自动重新生成（首次会慢一些）。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "unreal_content",
+   "name": "游戏资源 Content",
+   "kind": "game",
+   "risk": "keep",
+   "names": [
+    "content"
+   ],
+   "parents": [
+    "binaries"
+   ],
+   "purpose": "游戏的核心资源包。",
+   "advice": "不要删。",
+   "paths": [],
+   "keywords": []
+  },
+  {
+   "id": "redist",
+   "name": "游戏运行库安装包",
+   "kind": "install",
+   "risk": "safe",
+   "names": [
+    "_commonredist",
+    "_redist",
+    "redist",
+    "vcredist",
+    "directxredist",
+    "dotnet",
+    "_redist"
+   ],
+   "purpose": "随游戏附带的 DirectX / VC++ / .NET 运行库安装器，首次启动时装一次。",
+   "advice": "可以删。系统里通常已经装过；万一缺了，个别游戏可能要重新运行一次安装。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "uninstall_files",
+   "name": "卸载程序文件",
+   "kind": "install",
+   "risk": "caution",
+   "names": [
+    "uninstall",
+    "uninsfiles",
+    "uninst",
+    "unins000"
+   ],
+   "purpose": "存放卸载程序与日志，删了就不能用软件自带的卸载入口。",
+   "advice": "建议保留。确定要在「设置→应用」里卸载或直接删目录时再一起处理。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "game_save",
+   "name": "游戏存档目录",
+   "kind": "user",
+   "risk": "keep",
+   "names": [
+    "save",
+    "saves",
+    "savedata",
+    "savesdir",
+    "savesbackupdir",
+    "savegames",
+    "savedata_backup"
+   ],
+   "purpose": "游戏进度存档，体积不大但完全不可再生。",
+   "advice": "绝对不要删。找到这种目录建议顺手设为白名单。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "game_logs_dir",
+   "name": "游戏 / 软件日志目录",
+   "kind": "log",
+   "risk": "safe",
+   "names": [
+    "logs",
+    "log"
+   ],
+   "purpose": "运行日志，出问题排查用，平时没价值。",
+   "advice": "可直接清理。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "game_ost",
+   "name": "游戏原声带 OST",
+   "kind": "user",
+   "risk": "keep",
+   "names": [
+    "ost",
+    "soundtrack"
+   ],
+   "purpose": "随游戏附带的音乐文件。",
+   "advice": "删了不影响游戏，但音乐也没了。按个人需要决定。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "crack_game",
+   "name": "免安装 / 破解游戏目录",
+   "kind": "game",
+   "risk": "keep",
+   "keywords": [
+    "3dm",
+    "codex",
+    "plaza",
+    "tenoke",
+    "rune",
+    "flt",
+    "darksiders",
+    "skidrow",
+    "razor1911",
+    "tinyiso",
+    "fitgirl",
+    "p2p",
+    "doge",
+    "chronos",
+    "dinobytes",
+    "unleashed",
+    "simplex",
+    "r_g",
+    "i_know"
+   ],
+   "purpose": "解压即玩的免安装游戏本体，目录名通常带破解组或版本号标识。",
+   "advice": "这是游戏本体，不要删。要腾空间就把整个游戏目录移走或删除，别只删里面的子目录。",
+   "paths": [],
+   "names": [],
+   "parents": []
+  },
+  {
+   "id": "fitgirl_repack",
+   "name": "FitGirl 压制包解压目录",
+   "kind": "install",
+   "risk": "caution",
+   "keywords": [
+    "fitgirl"
+   ],
+   "purpose": "FitGirl Repack 解压出来的安装临时文件与游戏本体。",
+   "advice": "安装完成并确认能玩之后，可以删掉安装包与临时目录；但游戏本体目录要留着。",
+   "paths": [],
+   "names": [],
+   "parents": []
+  },
+  {
+   "id": "game_record",
+   "name": "游戏录屏 / 录像",
+   "kind": "user",
+   "risk": "caution",
+   "names": [
+    "游戏录屏",
+    "0000游戏录屏"
+   ],
+   "keywords": [
+    "录屏",
+    "replay",
+    "record"
+   ],
+   "purpose": "游戏内置或录屏软件保存的录像文件，体积通常很大。",
+   "advice": "看过的可以删。确认没有想留的精彩片段再批量清理。",
+   "paths": [],
+   "parents": []
+  },
+  {
+   "id": "sdk_emulator",
+   "name": "Android 模拟器",
+   "kind": "install",
+   "risk": "caution",
+   "paths": [
+    "sdk\\emulator"
+   ],
+   "purpose": "Android 模拟器程序本体。",
+   "advice": "不用模拟器调试可以整个删掉；删了 Android Studio 会提示重新下载。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sdk_system_images",
+   "name": "Android 模拟器系统镜像",
+   "kind": "install",
+   "risk": "caution",
+   "paths": [
+    "sdk\\system-images"
+   ],
+   "purpose": "模拟器的 Android 系统镜像，每个版本 1～3 GB。",
+   "advice": "不用的镜像可以删。删了模拟器里对应的设备会启动不了，重新下载即可。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sdk_ndk",
+   "name": "Android NDK",
+   "kind": "install",
+   "risk": "caution",
+   "paths": [
+    "sdk\\ndk"
+   ],
+   "purpose": "原生 C/C++ 开发工具链，只有做 JNI 开发才需要。",
+   "advice": "不做 native 开发可以删，体积通常 2～5 GB。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sdk_sources",
+   "name": "Android SDK 源码",
+   "kind": "install",
+   "risk": "safe",
+   "paths": [
+    "sdk\\sources"
+   ],
+   "purpose": "Android 平台源码，用于开发时跳转查看。",
+   "advice": "可以删，随时能在 SDK Manager 里重新下载。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sdk_dl_tmp",
+   "name": "SDK 下载中间文件",
+   "kind": "temp",
+   "risk": "safe",
+   "paths": [
+    "sdk\\.downloadintermediates",
+    "sdk\\.temp"
+   ],
+   "purpose": "SDK Manager 下载过程中产生的中间文件，中断后会残留。",
+   "advice": "可直接清理。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sdk_platforms",
+   "name": "Android SDK 平台",
+   "kind": "install",
+   "risk": "keep",
+   "paths": [
+    "sdk\\platforms",
+    "sdk\\build-tools",
+    "sdk\\platform-tools"
+   ],
+   "purpose": "编译 Android 应用必需的平台库、构建工具与 adb。",
+   "advice": "不要删。可以在 SDK Manager 里删除不用的旧版本。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "avd",
+   "name": "Android 虚拟设备",
+   "kind": "install",
+   "risk": "caution",
+   "names": [
+    "avd"
+   ],
+   "parents": [
+    ".android"
+   ],
+   "purpose": "模拟器创建的虚拟设备镜像。",
+   "advice": "不用的设备可以删，在 AVD Manager 里删最干净。",
+   "paths": [],
+   "keywords": []
+  },
+  {
+   "id": "cocos_library",
+   "name": "Cocos 导入缓存 library",
+   "kind": "cache",
+   "risk": "safe",
+   "names": [
+    "library"
+   ],
+   "parents": [
+    "assets",
+    "settings"
+   ],
+   "purpose": "Cocos Creator 对资源的导入结果，可完全由 assets 重建。",
+   "advice": "可以删。下次打开项目会重新导入，大项目首次导入可能要几分钟。",
+   "paths": [],
+   "keywords": []
+  },
+  {
+   "id": "cocos_temp",
+   "name": "Cocos 项目临时目录",
+   "kind": "temp",
+   "risk": "safe",
+   "names": [
+    "temp"
+   ],
+   "parents": [
+    "assets",
+    "library"
+   ],
+   "purpose": "编辑器运行时的临时文件。",
+   "advice": "可直接清理。",
+   "paths": [],
+   "keywords": []
+  },
+  {
+   "id": "cocos_build",
+   "name": "构建产物 build",
+   "kind": "temp",
+   "risk": "safe",
+   "names": [
+    "build"
+   ],
+   "parents": [
+    "assets",
+    "library"
+   ],
+   "purpose": "打包出来的发布目录，随时可重新构建。",
+   "advice": "可以删，需要时重新构建即可。",
+   "paths": [],
+   "keywords": []
+  },
+  {
+   "id": "cocos_assets",
+   "name": "项目资源 assets",
+   "kind": "user",
+   "risk": "danger",
+   "names": [
+    "assets"
+   ],
+   "parents": [
+    "library",
+    "settings"
+   ],
+   "purpose": "项目的原始资源：图片、脚本、场景，是整个项目的核心。",
+   "advice": "绝对不要删。删了项目就废了，务必设为白名单。",
+   "paths": [],
+   "keywords": []
+  },
+  {
+   "id": "godot_import",
+   "name": "Godot 导入缓存 .godot",
+   "kind": "cache",
+   "risk": "safe",
+   "names": [
+    ".godot"
+   ],
+   "purpose": "Godot 4 的导入缓存与编辑器状态，可由源文件重建。",
+   "advice": "可以删，下次打开项目会重新导入。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sd_outputs",
+   "name": "SD 生成结果 outputs",
+   "kind": "user",
+   "risk": "caution",
+   "names": [
+    "outputs",
+    "output"
+   ],
+   "purpose": "AI 绘图生成的历史图片，是实际产出物。",
+   "advice": "自己筛选。不要整目录删——里面是你生成过的图，先挑出要留的。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sd_grids",
+   "name": "SD 网格预览图",
+   "kind": "cache",
+   "risk": "safe",
+   "names": [
+    "txt2img-grids",
+    "img2img-grids",
+    "grids"
+   ],
+   "purpose": "批量生成时的拼接预览图，原图已单独保存，网格图只是索引。",
+   "advice": "可以删，不影响单张原图。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sd_models",
+   "name": "AI 大模型",
+   "kind": "model",
+   "risk": "caution",
+   "paths": [
+    "models\\stable-diffusion",
+    "models\\checkpoints"
+   ],
+   "purpose": "Stable Diffusion 底模，单个 2～10 GB。",
+   "advice": "不用的模型可以删，但重新下载很费时间。删前确认不再需要这个风格。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sd_lora",
+   "name": "LoRA / ControlNet 模型",
+   "kind": "model",
+   "risk": "caution",
+   "paths": [
+    "models\\lora",
+    "models\\controlnet",
+    "models\\lycoris"
+   ],
+   "purpose": "微调模型与控制网络，体积从几十 MB 到数 GB 不等。",
+   "advice": "不用的可以删，重启 WebUI 后列表自动更新。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sd_vae",
+   "name": "VAE / embeddings",
+   "kind": "model",
+   "risk": "keep",
+   "paths": [
+    "models\\vae",
+    "embeddings"
+   ],
+   "purpose": "很小的解码与文本反转模型，通常只有几十到几百 MB。",
+   "advice": "占空间不多，建议保留。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sd_repositories",
+   "name": "SD 依赖仓库",
+   "kind": "install",
+   "risk": "keep",
+   "names": [
+    "repositories"
+   ],
+   "purpose": "WebUI 运行必需的第三方依赖源码。",
+   "advice": "不要删，删了 WebUI 起不来。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sd_extensions",
+   "name": "SD 插件 extensions",
+   "kind": "install",
+   "risk": "keep",
+   "names": [
+    "extensions",
+    "custom_nodes"
+   ],
+   "purpose": "安装的插件与自定义节点。",
+   "advice": "不要删，删了功能会缺失。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sd_venv",
+   "name": "AI 环境虚拟环境",
+   "kind": "install",
+   "risk": "keep",
+   "names": [
+    "venv",
+    "system\\python"
+   ],
+   "purpose": "Python 依赖环境，通常 2～8 GB。",
+   "advice": "不要删。重装环境很麻烦；要腾空间可以考虑换到别的盘重装。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sd_tmp",
+   "name": "AI 临时输出",
+   "kind": "temp",
+   "risk": "safe",
+   "names": [
+    "tmp"
+   ],
+   "parents": [
+    "stable-diffusion-webui"
+   ],
+   "purpose": "生成过程中的临时文件。",
+   "advice": "可直接清理。",
+   "paths": [],
+   "keywords": []
+  },
+  {
+   "id": "comfy_input",
+   "name": "ComfyUI 输入目录",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "comfyui\\input"
+   ],
+   "purpose": "上传到工作流的素材，用完可清。",
+   "advice": "可以清，但工作流里引用的图片要重新上传。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "venv_dir",
+   "name": "Python 虚拟环境",
+   "kind": "install",
+   "risk": "caution",
+   "names": [
+    "venv",
+    ".venv",
+    "env"
+   ],
+   "purpose": "项目独立的 Python 依赖环境，通常 1～10 GB。",
+   "advice": "删了要重新 pip 安装依赖。不用的旧项目环境可以删，正在用的保留。",
+   "paths": [],
+   "keywords": [
+    "venv",
+    "_env"
+   ],
+   "parents": []
+  },
+  {
+   "id": "pycache",
+   "name": "Python 字节码缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "names": [
+    "__pycache__"
+   ],
+   "purpose": "Python 自动生成的 .pyc 缓存，可随时重建。",
+   "advice": "可直接清理，运行时会自动重新生成。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "build_dist",
+   "name": "构建产物",
+   "kind": "temp",
+   "risk": "safe",
+   "names": [
+    "build",
+    "dist",
+    "*.egg-info"
+   ],
+   "purpose": "打包 / 编译产生的中间与最终产物。",
+   "advice": "可以删，重新构建即可。确认没有正在分发的文件。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "node_modules",
+   "name": "Node 依赖目录",
+   "kind": "install",
+   "risk": "safe",
+   "names": [
+    "node_modules"
+   ],
+   "purpose": "npm 安装的依赖，以大量小文件著称。",
+   "advice": "可以删，npm install 会还原。删之前确认项目还要用。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "git_dir",
+   "name": "Git 仓库数据",
+   "kind": "db",
+   "risk": "danger",
+   "names": [
+    ".git"
+   ],
+   "purpose": "版本历史与对象数据库，删除后无法回退任何提交。",
+   "advice": "不要删。想瘦身用 git gc，不要手动删目录。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "baidu_dl",
+   "name": "百度网盘下载目录",
+   "kind": "temp",
+   "risk": "caution",
+   "names": [
+    "baidunetdiskdownload"
+   ],
+   "purpose": "百度网盘默认的下载落地目录。",
+   "advice": "下载完并转存后的安装包可以删。确认没有还在同步的任务。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "xunlei_dl",
+   "name": "迅雷下载目录",
+   "kind": "temp",
+   "risk": "caution",
+   "names": [
+    "迅雷下载",
+    "迅雷云盘"
+   ],
+   "purpose": "迅雷默认下载目录。",
+   "advice": "已看完 / 已转存的文件可以删。任务还在做种时删除会中断上传。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "browser_dl",
+   "name": "浏览器下载目录",
+   "kind": "temp",
+   "risk": "caution",
+   "names": [
+    "360安全浏览器下载"
+   ],
+   "purpose": "浏览器的默认下载目录。",
+   "advice": "装完软件后的安装包可以删，注意别删掉里面的种子或未完成的下载。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "weflow_out",
+   "name": "WeFlow 输出目录",
+   "kind": "user",
+   "risk": "caution",
+   "names": [
+    "weflowout"
+   ],
+   "purpose": "微信相关工具导出 / 输出的文件。",
+   "advice": "确认已备份后清理。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sys_vol_info",
+   "name": "系统卷信息",
+   "kind": "system",
+   "risk": "danger",
+   "names": [
+    "system volume information"
+   ],
+   "purpose": "存放系统还原点、卷影副本与磁盘索引，普通用户看不到内容。",
+   "advice": "不要手动删除。要回收空间用「系统属性→系统保护→配置」删除旧的还原点。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "config_msi",
+   "name": "安装残留 Config.Msi",
+   "kind": "temp",
+   "risk": "safe",
+   "names": [
+    "config.msi"
+   ],
+   "purpose": "安装程序留下的回滚信息。",
+   "advice": "可直接清理。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "dump_stack",
+   "name": "崩溃堆栈日志",
+   "kind": "log",
+   "risk": "safe",
+   "names": [
+    "dumpstack.log.tmp"
+   ],
+   "purpose": "程序崩溃时写的堆栈日志。",
+   "advice": "可直接清理。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "windows_apps",
+   "name": "WindowsApps 应用商店目录",
+   "kind": "install",
+   "risk": "caution",
+   "names": [
+    "windowsapps",
+    "modifiablewindowsapps"
+   ],
+   "purpose": "微软商店安装的应用本体，权限受系统保护。",
+   "advice": "不要手动删。在「设置→应用」里卸载，或用「移动」功能迁到别的盘。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "adobe_ps",
+   "name": "Adobe Photoshop",
+   "kind": "install",
+   "risk": "keep",
+   "paths": [
+    "adobe photoshop 2022"
+   ],
+   "purpose": "Photoshop 安装目录。",
+   "advice": "不要删。里面的 Presets 是自己的预设，别误删。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "bilibili_client",
+   "name": "哔哩哔哩客户端",
+   "kind": "install",
+   "risk": "keep",
+   "paths": [
+    "program files\\bilibili"
+   ],
+   "purpose": "B 站桌面客户端本体。",
+   "advice": "不要删，要移除走卸载。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "bililive",
+   "name": "直播姬",
+   "kind": "install",
+   "risk": "caution",
+   "paths": [
+    "bililive\\livehime"
+   ],
+   "purpose": "B 站直播姬，含直播录像与素材缓存。",
+   "advice": "软件本体别删；过去直播的录像与素材可以在软件设置里清理。",
+   "names": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "sunlogin",
+   "name": "向日葵远程控制",
+   "kind": "install",
+   "risk": "keep",
+   "names": [
+    "sunlogin",
+    "sunloginclient"
+   ],
+   "purpose": "向日葵远程控制客户端。",
+   "advice": "不要删目录。它的日志子目录可以清。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "fdm",
+   "name": "Free Download Manager",
+   "kind": "install",
+   "risk": "keep",
+   "names": [
+    "free download manager"
+   ],
+   "purpose": "下载工具本体。",
+   "advice": "不要删。下载记录与临时分片在软件里清。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "apache_ant",
+   "name": "Apache Ant",
+   "kind": "install",
+   "risk": "keep",
+   "keywords": [
+    "apache-ant"
+   ],
+   "purpose": "Java 构建工具，被 Cocos 等工具链依赖。",
+   "advice": "保留。确定不再用旧工具链时可以整目录删。",
+   "paths": [],
+   "names": [],
+   "parents": []
+  },
+  {
+   "id": "personal_lib",
+   "name": "个人资料库",
+   "kind": "user",
+   "risk": "keep",
+   "names": [
+    "我的文档",
+    "我的图片",
+    "我的视频",
+    "我的音乐",
+    "我的图书",
+    "我的学习",
+    "我的工作",
+    "我的绘画",
+    "我的手机",
+    "我的剧集",
+    "我的软件",
+    "我的手机22"
+   ],
+   "purpose": "你自己整理的文档、影视、图片与学习资料。",
+   "advice": "这是个人文件，工具不会也不敢替你判断。建议在里面按年份/类型手动整理，或整体迁移到大容量盘。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "personal_ai",
+   "name": "AI 素材与工作流",
+   "kind": "user",
+   "risk": "caution",
+   "names": [
+    "0000ai",
+    "aⅲ教程"
+   ],
+   "purpose": "AI 教程、工作流与生成素材。",
+   "advice": "教程和工作流保留；生成的中间图可以按批次清理。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "game_library",
+   "name": "游戏库分类目录",
+   "kind": "game",
+   "risk": "keep",
+   "names": [
+    "0000gggg",
+    "0000games",
+    "games_3dm",
+    "games_rusia2",
+    "game_2023",
+    "game_2024",
+    "games2023",
+    "games2024",
+    "games2025",
+    "games2026"
+   ],
+   "purpose": "你自己整理的游戏库，多半是解压即玩的免安装版。",
+   "advice": "这是游戏本体，不要删。想腾空间就整个游戏目录移走或删除。",
+   "paths": [],
+   "keywords": [
+    "0000games",
+    "games_3dm",
+    "games2023",
+    "games2024",
+    "0000gggg"
+   ],
+   "parents": []
+  },
+  {
+   "id": "bilibili_dl",
+   "name": "B 站下载的视频",
+   "kind": "user",
+   "risk": "caution",
+   "names": [
+    "bilibili"
+   ],
+   "purpose": "用 B 站客户端或工具下载到本地的番剧、视频与字幕。",
+   "advice": "自己判断：看完的可以删，注意别删掉还在追的剧集。",
+   "paths": [],
+   "keywords": [],
+   "parents": []
+  },
+  {
+   "id": "kk_chrome_userdata_v2",
+   "name": "Chrome 用户数据根（User Data）",
+   "kind": "user",
+   "risk": "keep",
+   "paths": [
+    "appdata\\local\\google\\chrome\\user data"
+   ],
+   "purpose": "Chrome 所有个人资料、缓存、登录态、扩展与书签的存放根目录。",
+   "advice": "不要整体删除；只清里面的 Cache / Code Cache / GPUCache / Service Worker 等缓存子目录，否则会丢失登录态、书签和扩展。"
+  },
+  {
+   "id": "kk_chrome_default_v2",
+   "name": "Chrome 个人资料（Default）",
+   "kind": "user",
+   "risk": "keep",
+   "paths": [
+    "appdata\\local\\google\\chrome\\user data\\default"
+   ],
+   "purpose": "Chrome 的默认个人资料，含浏览历史、Cookie、密码、登录态与本地状态。",
+   "advice": "整体删除等于重置 Chrome。需要腾空间时只清该目录下的 Cache、Code Cache、GPUCache、Service Worker 子目录。"
+  },
+  {
+   "id": "kk_chrome_cache_v2",
+   "name": "Chrome 网页缓存（Cache）",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\local\\google\\chrome\\user data\\default\\cache"
+   ],
+   "purpose": "Chrome 下载并缓存的网页图片、脚本与媒体文件，用于加速二次加载。",
+   "advice": "可安全清理：关闭 Chrome 后删除其内容即可，下次访问会重新下载；不影响书签和密码。"
+  },
+  {
+   "id": "kk_chrome_codecache_v2",
+   "name": "Chrome 脚本缓存（Code Cache）",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\local\\google\\chrome\\user data\\default\\code cache"
+   ],
+   "purpose": "Chrome 缓存的已编译 JavaScript/WASM 代码，加速页面脚本执行。",
+   "advice": "可安全清理，重新访问页面时会重建；不影响任何用户数据。"
+  },
+  {
+   "id": "kk_chrome_gpucache_v2",
+   "name": "Chrome GPU 缓存（GPUCache）",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\local\\google\\chrome\\user data\\default\\gpucache"
+   ],
+   "purpose": "Chrome 缓存的 GPU 着色器与渲染中间产物，用于硬件加速。",
+   "advice": "可安全清理，关闭浏览器后删除其内容。"
+  },
+  {
+   "id": "kk_chrome_sw_v2",
+   "name": "Chrome Service Worker 缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\local\\google\\chrome\\user data\\default\\service worker"
+   ],
+   "purpose": "Chrome Service Worker 的缓存与脚本，支撑 PWA 离线能力与推送。",
+   "advice": "可清理；仅影响少数离线站点，会重新注册，无数据损失。"
+  },
+  {
+   "id": "kk_chrome_network_v2",
+   "name": "Chrome 网络缓存（Network）",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\local\\google\\chrome\\user data\\default\\network"
+   ],
+   "purpose": "Chrome 的 HTTP 网络缓存，记录请求与响应。",
+   "advice": "可安全清理，关闭浏览器后删除。"
+  },
+  {
+   "id": "kk_edge_userdata_v2",
+   "name": "Edge 用户数据根（User Data）",
+   "kind": "user",
+   "risk": "keep",
+   "paths": [
+    "appdata\\local\\microsoft\\edge\\user data"
+   ],
+   "purpose": "Edge 所有个人资料、缓存、登录态与扩展的存放根目录。",
+   "advice": "不要整体删除；只清里面的 Cache / Code Cache / GPUCache 等缓存子目录。"
+  },
+  {
+   "id": "kk_edge_cache_v2",
+   "name": "Edge 网页缓存（Cache）",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\local\\microsoft\\edge\\user data\\default\\cache"
+   ],
+   "purpose": "Edge 下载并缓存的网页资源，用于加速加载。",
+   "advice": "可安全清理，关闭 Edge 后删除其内容；不影响收藏和密码。"
+  },
+  {
+   "id": "kk_edge_codecache_v2",
+   "name": "Edge 脚本缓存（Code Cache）",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\local\\microsoft\\edge\\user data\\default\\code cache"
+   ],
+   "purpose": "Edge 缓存的已编译脚本，加速页面执行。",
+   "advice": "可安全清理，重新访问会重建。"
+  },
+  {
+   "id": "kk_edge_gpucache_v2",
+   "name": "Edge GPU 缓存（GPUCache）",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\local\\microsoft\\edge\\user data\\default\\gpucache"
+   ],
+   "purpose": "Edge 缓存的 GPU 着色器与渲染中间产物。",
+   "advice": "可安全清理。"
+  },
+  {
+   "id": "kk_firefox_profiles_v2",
+   "name": "Firefox 配置（Profiles）",
+   "kind": "user",
+   "risk": "keep",
+   "paths": [
+    "appdata\\roaming\\mozilla\\firefox\\profiles"
+   ],
+   "purpose": "Firefox 的个人资料目录，含历史、Cookie、扩展与缓存。",
+   "advice": "不要整体删；只清里面的 cache2、thumbnails 等缓存子目录。"
+  },
+  {
+   "id": "kk_firefox_cache_v2",
+   "name": "Firefox 缓存（cache2）",
+   "kind": "cache",
+   "risk": "safe",
+   "names": [
+    "cache2",
+    "thumbnails"
+   ],
+   "parents": [
+    "profiles"
+   ],
+   "purpose": "Firefox 的网页缓存（cache2）与缩略图缓存。",
+   "advice": "可安全清理：浏览器设置里『清除缓存』或手动删 cache2、thumbnails 均可。"
+  },
+  {
+   "id": "kk_brave_userdata_v2",
+   "name": "Brave 用户数据根",
+   "kind": "user",
+   "risk": "keep",
+   "paths": [
+    "appdata\\local\\bravesoftware\\brave-browser\\user data"
+   ],
+   "purpose": "Brave 的个人资料、缓存与登录态根目录（结构与 Chrome 一致）。",
+   "advice": "不要整体删；只清 Cache / Code Cache / GPUCache 等缓存子目录。"
+  },
+  {
+   "id": "kk_opera_userdata_v2",
+   "name": "Opera 用户数据",
+   "kind": "user",
+   "risk": "keep",
+   "paths": [
+    "appdata\\local\\opera software\\opera stable"
+   ],
+   "purpose": "Opera 的个人资料、缓存与配置根目录。",
+   "advice": "不要整体删；只清其中的缓存子目录。"
+  },
+  {
+   "id": "kk_discord_cache_v2",
+   "name": "Discord 缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\roaming\\discord\\cache",
+    "appdata\\roaming\\discord\\code cache",
+    "appdata\\roaming\\discord\\gpucache"
+   ],
+   "purpose": "Discord 缓存的贴纸、表情、服务器图标与近期附件缩略图。",
+   "advice": "可安全清理：完全退出 Discord（含托盘）后删除 Cache / Code Cache / GPUCache 内容，会重建。"
+  },
+  {
+   "id": "kk_discord_root_v2",
+   "name": "Discord 数据目录",
+   "kind": "user",
+   "risk": "keep",
+   "paths": [
+    "appdata\\roaming\\discord"
+   ],
+   "purpose": "Discord 的配置、本地状态与本地数据库。",
+   "advice": "不要整体删；只清其中的缓存子目录，否则可能丢失本地状态。"
+  },
+  {
+   "id": "kk_slack_cache_v2",
+   "name": "Slack 缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\roaming\\slack\\cache",
+    "appdata\\roaming\\slack\\code cache",
+    "appdata\\roaming\\slack\\gpucache"
+   ],
+   "purpose": "Slack 缓存的头像、频道媒体与渲染资源。",
+   "advice": "可安全清理，关闭后删除 Cache / Code Cache / GPUCache。"
+  },
+  {
+   "id": "kk_teams_cache_v2",
+   "name": "Microsoft Teams 缓存",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\roaming\\microsoft\\teams"
+   ],
+   "purpose": "Teams 的缓存、Blob 存储、IndexedDB 与会话数据（会议缓存、附件）。",
+   "advice": "可清 Cache / Blob_storage / GPUCache / tmp 等子目录；但 Local Storage 与 IndexedDB 含登录态，删了会重新同步、需重新登录。"
+  },
+  {
+   "id": "kk_telegram_v2",
+   "name": "Telegram 桌面端缓存",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\roaming\\telegram desktop"
+   ],
+   "purpose": "Telegram 桌面端缓存的聊天图片、视频与下载文件。",
+   "advice": "可清理 Cache 子目录；但媒体下载目录（含你存过的文件）删除会丢失本地副本。"
+  },
+  {
+   "id": "kk_whatsapp_v2",
+   "name": "WhatsApp 桌面端",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\roaming\\whatsapp"
+   ],
+   "purpose": "WhatsApp 桌面端的媒体缓存与本地数据库。",
+   "advice": "可清 Cache / GPUCache；数据库文件（.db）含聊天记录，谨慎删除。"
+  },
+  {
+   "id": "kk_zoom_v2",
+   "name": "Zoom 缓存与日志",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\roaming\\zoom"
+   ],
+   "purpose": "Zoom 缓存的会议媒体、录制缓存与日志。",
+   "advice": "可清理 logs 与缓存；不影响账号，但本地录制会被删除。"
+  },
+  {
+   "id": "kk_skype_v2",
+   "name": "Skype 数据",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\roaming\\skype"
+   ],
+   "purpose": "Skype 的聊天历史数据库与媒体缓存。",
+   "advice": "可清缓存；数据库含聊天记录，谨慎。"
+  },
+  {
+   "id": "kk_spotify_storage_v2",
+   "name": "Spotify 缓存（Storage）",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\local\\spotify\\storage"
+   ],
+   "purpose": "Spotify 缓存的音频流与离线下载歌曲、专辑封面，常见 10–30GB。",
+   "advice": "可安全清理（歌单与账号在云端，清后重新下载即可）；或在 Spotify 设置里『清除缓存』。"
+  },
+  {
+   "id": "kk_spotify_data_v2",
+   "name": "Spotify 数据",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\local\\spotify\\data"
+   ],
+   "purpose": "Spotify 的本地状态与离线元数据。",
+   "advice": "可清；重新登录后会重建。"
+  },
+  {
+   "id": "kk_adobe_premiere_v2",
+   "name": "Premiere Pro 媒体缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\roaming\\adobe\\common\\media cache",
+    "documents\\adobe\\premiere pro"
+   ],
+   "purpose": "Premiere Pro 为视频预览生成的媒体缓存（.cfa/.pep）与索引，常达数十 GB。",
+   "advice": "可安全清理（建议用 Premiere 首选项里的『删除媒体缓存』）；不影响工程文件。"
+  },
+  {
+   "id": "kk_adobe_ae_v2",
+   "name": "After Effects 缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\roaming\\adobe\\after effects"
+   ],
+   "purpose": "After Effects 的磁盘缓存（预渲染帧），用于加速回放。",
+   "advice": "可安全清理（首选项→媒体与磁盘缓存→清空）；不影响工程。"
+  },
+  {
+   "id": "kk_adobe_lightroom_v2",
+   "name": "Lightroom 缓存",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\roaming\\adobe\\lightroom"
+   ],
+   "purpose": "Lightroom 的预览缓存与目录数据库（.lrcat）。",
+   "advice": "可清预览缓存（Previews.lrdata 可删，会重建）；但 .lrcat 数据库含你的目录与编辑记录，别删。"
+  },
+  {
+   "id": "kk_adobe_illustrator_v2",
+   "name": "Illustrator 缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\roaming\\adobe\\illustrator"
+   ],
+   "purpose": "Illustrator 的字体缓存、临时文件与近期文档缓存。",
+   "advice": "可安全清理，重启后重建。"
+  },
+  {
+   "id": "kk_adobe_bridge_v2",
+   "name": "Bridge 缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\roaming\\adobe\\bridge"
+   ],
+   "purpose": "Bridge 的缩略图预览缓存。",
+   "advice": "可安全清理，会重建。"
+  },
+  {
+   "id": "kk_adobe_cameraraw_v2",
+   "name": "Camera Raw 缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\roaming\\adobe\\cameraraw"
+   ],
+   "purpose": "Camera Raw 的 raw 预览缓存。",
+   "advice": "可安全清理。"
+  },
+  {
+   "id": "kk_audition_v2",
+   "name": "Audition 缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\roaming\\adobe\\audition"
+   ],
+   "purpose": "Audition 的音频预览与渲染缓存。",
+   "advice": "可安全清理。"
+  },
+  {
+   "id": "kk_docker_vhdx_v2",
+   "name": "Docker Desktop 数据（WSL 虚拟硬盘）",
+   "kind": "data",
+   "risk": "danger",
+   "paths": [
+    "appdata\\local\\docker\\wsl"
+   ],
+   "purpose": "Docker Desktop 用 WSL2 后端，把全部镜像、容器、卷、构建缓存存在 ext4.vhdx 虚拟硬盘里，会只增不减。",
+   "advice": "切勿手动删 docker-desktop / docker-desktop-data 这两个 WSL 发行版！正确做法：Docker 里 docker system prune 清理镜像，再用 optimize-vhd 压缩 vhdx；或把 Docker 数据目录迁移到其他盘。"
+  },
+  {
+   "id": "kk_docker_root_v2",
+   "name": "Docker Desktop 配置",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\local\\docker"
+   ],
+   "purpose": "Docker Desktop 的配置与部分缓存。",
+   "advice": "不要整体删；真正的镜像数据在 WSL 虚拟硬盘内。"
+  },
+  {
+   "id": "kk_wsl_packages_v2",
+   "name": "WSL / 应用包目录（Packages）",
+   "kind": "data",
+   "risk": "danger",
+   "paths": [
+    "appdata\\local\\packages"
+   ],
+   "purpose": "Windows 应用包目录，内含 WSL 各 Linux 发行版的 ext4.vhdx 虚拟硬盘（Ubuntu 等），会只增不减。",
+   "advice": "不要整体删除 Packages！WSL 腾空间：先在 WSL 内删文件，wsl --terminate 后 optimize-vhd 压缩 ext4.vhdx；不再用的发行版用 wsl --unregister 注销。"
+  },
+  {
+   "id": "kk_hyperv_v2",
+   "name": "Hyper-V 虚拟机硬盘",
+   "kind": "data",
+   "risk": "keep",
+   "paths": [
+    "users\\public\\documents\\hyper-v"
+   ],
+   "purpose": "Hyper-V 虚拟机的 VHD/VHDX 虚拟硬盘文件。",
+   "advice": "不要随意删；删除会丢失整台虚拟机。需在 Hyper-V 管理器里导出或压缩。"
+  },
+  {
+   "id": "kk_jetbrains_v2",
+   "name": "JetBrains IDE 缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\local\\jetbrains",
+    "appdata\\local\\.jetbrains"
+   ],
+   "names": [
+    "caches"
+   ],
+   "keywords": [
+    "jetbrains",
+    "ideaic",
+    "pycharm",
+    "intellij",
+    "clion",
+    "webstorm",
+    "datagrip",
+    "rider"
+   ],
+   "purpose": "IntelliJ / PyCharm / IDEA 等 IDE 的索引、缓存与日志，常达数 GB。",
+   "advice": "可安全清理（用 IDE 自带『清理缓存并重启』更稳妥）；不影响你的工程代码。"
+  },
+  {
+   "id": "kk_yarn_cache_v2",
+   "name": "Yarn 缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\local\\yarn",
+    "appdata\\roaming\\yarn"
+   ],
+   "purpose": "Yarn 包管理器缓存的 npm 包压缩文件。",
+   "advice": "可安全清理；需要时 yarn install 会重新下载（或 yarn cache clean）。"
+  },
+  {
+   "id": "kk_pnpm_v2",
+   "name": "pnpm 仓库",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\local\\pnpm-store",
+    "appdata\\roaming\\pnpm"
+   ],
+   "purpose": "pnpm 的全局内容寻址包仓库（store）。",
+   "advice": "可清理 store（pnpm store prune）；但正在被项目硬链接引用的包不要动。"
+  },
+  {
+   "id": "kk_cargo_v2",
+   "name": "Cargo / Rust 缓存",
+   "kind": "caution",
+   "risk": "caution",
+   "names": [
+    ".cargo"
+   ],
+   "keywords": [
+    "cargo",
+    "registry"
+   ],
+   "purpose": "Rust 的 Cargo 缓存的 crate 源码与编译产物（registry、git、target）。",
+   "advice": "registry/cache 可清；target 目录可删（重新编译）。整体删会减慢后续构建。"
+  },
+  {
+   "id": "kk_go_v2",
+   "name": "Go 模块与构建缓存",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\local\\go-build",
+    "go\\pkg\\mod"
+   ],
+   "purpose": "Go 的模块缓存（GOPATH/pkg/mod）与构建缓存。",
+   "advice": "可清理；go clean -modcache 会重建。不影响你的源码。"
+  },
+  {
+   "id": "kk_conda_v2",
+   "name": "Conda 包缓存",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "anaconda3\\pkgs",
+    "miniconda3\\pkgs",
+    "appdata\\local\\conda"
+   ],
+   "purpose": "Conda 缓存的包压缩文件与解压副本。",
+   "advice": "可安全清理：conda clean --all。"
+  },
+  {
+   "id": "kk_jupyter_v2",
+   "name": "Jupyter 运行时",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "appdata\\roaming\\jupyter",
+    "appdata\\local\\jupyter"
+   ],
+   "purpose": "Jupyter 的配置、内核与运行时缓存。",
+   "advice": "可清理；不影响你的 notebook 文件。"
+  },
+  {
+   "id": "kk_dropbox_v2",
+   "name": "Dropbox 缓存",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\local\\dropbox",
+    "appdata\\roaming\\dropbox"
+   ],
+   "purpose": "Dropbox 的本地缓存与文件块存储。",
+   "advice": "不要删其数据库；缓存子目录可清，但会触发重新索引。"
+  },
+  {
+   "id": "kk_gdrive_v2",
+   "name": "Google Drive 文件流缓存",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\local\\google\\drivefs"
+   ],
+   "purpose": "Google Drive 桌面端的缓存与离线文件块（.df），可占数 GB。",
+   "advice": "可清；会重新从云端拉取。离线标记为可用的文件需重新标记。"
+  },
+  {
+   "id": "kk_pcloud_v2",
+   "name": "pCloud 缓存",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\local\\pcloud"
+   ],
+   "purpose": "pCloud 客户端的缓存与同步数据库。",
+   "advice": "缓存子目录可清；数据库含同步状态，删了需重新索引。"
+  },
+  {
+   "id": "kk_mega_v2",
+   "name": "MEGA 缓存",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\local\\mega limited",
+    "appdata\\roaming\\mega limited"
+   ],
+   "purpose": "MEGA 桌面的缓存与本地数据库。",
+   "advice": "缓存可清；数据库含加密密钥与同步状态，谨慎。"
+  },
+  {
+   "id": "kk_icloud_v2",
+   "name": "iCloud 缓存",
+   "kind": "caution",
+   "risk": "caution",
+   "paths": [
+    "appdata\\local\\apple inc\\icloud"
+   ],
+   "purpose": "iCloud for Windows 的缓存与同步数据库。",
+   "advice": "缓存可清；重新同步会重建。"
+  },
+  {
+   "id": "kk_wu_download_v2",
+   "name": "Windows 更新下载（SoftwareDistribution\\Download）",
+   "kind": "cache",
+   "risk": "safe",
+   "paths": [
+    "windows\\softwaredistribution\\download",
+    "software distribution\\download"
+   ],
+   "purpose": "Windows Update 下载的补丁安装包暂存，安装完成后即无用。",
+   "advice": "可安全清理（停止 wuauserv 服务后删除）；或用磁盘清理的『Windows 更新清理』。"
+  },
+  {
+   "id": "kk_eventlog_v2",
+   "name": "Windows 事件日志（.evtx）",
+   "kind": "log",
+   "risk": "caution",
+   "paths": [
+    "windows\\system32\\winevt\\logs",
+    "windows\\system32\\config"
+   ],
+   "purpose": "Windows 记录的系统、安全、应用程序事件日志。",
+   "advice": "不要手动删；用『事件查看器』或 wevtutil 清空，或磁盘清理。"
+  },
+  {
+   "id": "kk_iis_v2",
+   "name": "IIS / 系统日志",
+   "kind": "log",
+   "risk": "safe",
+   "paths": [
+    "inetpub\\logs",
+    "windows\\system32\\logfiles"
+   ],
+   "purpose": "IIS 与 Windows 各类服务的访问、运行日志。",
+   "advice": "日志可定期清理；不影响服务运行。"
+  },
+  {
+   "id": "kk_win_temp_wu_v2",
+   "name": "Windows 更新临时目录",
+   "kind": "temp",
+   "risk": "safe",
+   "paths": [
+    "windows\\temp"
+   ],
+   "purpose": "Windows 更新与组件安装产生的临时文件。",
+   "advice": "可安全清理；系统运行时不占用的可删。"
+  },
+  {
+   "id": "n_sw_clash",
+   "name": "Clash 代理客户端",
+   "names": [
+    "Clash",
+    "Clash for Windows",
+    "Clash Verge",
+    "clash_win",
+    "Clash.for.Windows-0.14.9-win",
+    "io.github.clash-verge-rev.clash-verge-rev"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "网络代理客户端：Clash for Windows / Clash Verge（Mihomo 内核）。用订阅配置文件分流国内外流量。",
+   "advice": "保留。订阅、规则在 profiles/config.yaml 里，删了要重新导入。卸载请走程序自带的卸载。"
+  },
+  {
+   "id": "n_sw_clash_acc",
+   "name": "加速器加速组件",
+   "names": [
+    "KookAcc",
+    "LeiGod_Acc",
+    "XTeam",
+    "Softdeluxe"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "游戏加速器的加速组件（雷神 / KK 加速器等），负责转发游戏流量降低延迟。",
+   "advice": "保留。删掉只会让加速器重新下载组件，得不偿失。"
+  },
+  {
+   "id": "n_sw_local_send",
+   "name": "LocalSend 局域网传输",
+   "names": [
+    "LocalSend-1.17.0",
+    "LocalSend"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "开源跨平台局域网文件互传工具，手机与电脑之间传文件用。",
+   "advice": "保留。绿色软件，删目录即卸载。"
+  },
+  {
+   "id": "n_sw_steampp",
+   "name": "Steam++（Watt Toolkit）",
+   "names": [
+    "Steam++",
+    "Steam++ASF",
+    "Steampp"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "Steam++ / Watt Toolkit：加速 Steam、GitHub、微软商店等访问；ASF 是 Steam 挂卡机器人。",
+   "advice": "保留。证书装过记得保留，删掉后需重新安装根证书才能继续加速。"
+  },
+  {
+   "id": "n_sw_windivert",
+   "name": "WinDivert 网络驱动",
+   "names": [
+    "WinDivert"
+   ],
+   "kind": "system",
+   "risk": "caution",
+   "purpose": "被抓包 / 加速类软件调用的网络过滤驱动，随宿主程序安装。",
+   "advice": "别单独删。确认已卸载对应软件后再清理，否则会导致软件报错。"
+  },
+  {
+   "id": "n_sw_gpuz",
+   "name": "GPU-Z 显卡检测",
+   "names": [
+    "GPU-Z"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "查看显卡型号、显存、频率、温度与传感器数据的硬件检测工具。",
+   "advice": "保留，体积很小。"
+  },
+  {
+   "id": "n_sw_wiztree",
+   "name": "WizTree 磁盘空间分析",
+   "names": [
+    "WizTree"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "直读 NTFS 主文件表、秒级扫描整盘占用，找大文件非常快。",
+   "advice": "保留。与本工具（YYYCleanSweep）用途相近，可搭配使用。"
+  },
+  {
+   "id": "n_sw_driverstore",
+   "name": "DriverStore Explorer",
+   "names": [
+    "DriverStoreExplorer.v0.12.95",
+    "DriverStore Explorer",
+    "DriverStoreExplorer"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "查看并删除 Windows 驱动仓库里多余的旧驱动版本，能腾出可观空间。",
+   "advice": "保留。清理驱动请只删标为「旧版本」的项，删错了设备会掉驱动。"
+  },
+  {
+   "id": "n_sw_tubagongjuxiang",
+   "name": "图吧工具箱",
+   "names": [
+    "图吧工具箱202608",
+    "图吧工具箱"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "硬件检测工具合集：CPU-Z、GPU-Z、AIDA64、硬盘检测等一大包。",
+   "advice": "保留。里面很多小工具，按需单独运行即可。"
+  },
+  {
+   "id": "n_sw_recuva",
+   "name": "Recuva 数据恢复",
+   "names": [
+    "Recuva"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "误删文件恢复工具，能扫描磁盘上的残留文件记录。",
+   "advice": "保留。恢复前不要把新文件写进同一分区。"
+  },
+  {
+   "id": "n_sw_cheatengine",
+   "name": "Cheat Engine 内存修改器",
+   "names": [
+    "Cheat Engine 7.2",
+    "Cheat Engine"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "内存扫描与修改工具，常用于单机游戏改数值、调试程序。",
+   "advice": "保留。部分网游的反作弊会把它当成外挂，联网游戏别开着。"
+  },
+  {
+   "id": "n_sw_fling",
+   "name": "风灵月影修改器",
+   "names": [
+    "FLiNGTrainer",
+    "FLiNG"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "风灵月影（FLiNG）单机游戏修改器，WeMod 是同类在线修改器平台。",
+   "advice": "保留。配置与存档在 AppData 下，删了要重新配置按键。"
+  },
+  {
+   "id": "n_sw_drvmgr",
+   "name": "驱动管理组件",
+   "names": [
+    "DrvMgr",
+    "TuringShield",
+    "VEDetector",
+    "acc_kernel",
+    "pxauth"
+   ],
+   "kind": "system",
+   "risk": "caution",
+   "purpose": "厂商驱动 / 反作弊 / 加速器的常驻服务与内核组件。",
+   "advice": "别手删。随对应软件卸载时一起清理；删掉常导致软件启动报错。"
+  },
+  {
+   "id": "n_sw_systemkeys",
+   "name": "SystemKeys 辅助组件",
+   "names": [
+    "SystemKeys",
+    "lockhomepage"
+   ],
+   "kind": "system",
+   "risk": "caution",
+   "purpose": "部分国产软件安装的辅助 / 主页锁定组件。",
+   "advice": "若确认不再用对应软件，可在卸载软件后再清理。"
+  },
+  {
+   "id": "n_sw_winrar",
+   "name": "WinRAR 压缩软件",
+   "names": [
+    "WinRAR"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "经典压缩 / 解压工具，配置与注册信息存放在这里。",
+   "advice": "保留。"
+  },
+  {
+   "id": "n_sw_adsafe360",
+   "name": "360 系列软件",
+   "names": [
+    "360Game5",
+    "360Notify"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "360 游戏大厅、通知推送、浏览器、安全卫士、极速浏览器等。",
+   "advice": "保留（若要卸载请走官方卸载程序）。这些目录里多是缓存与配置。"
+  },
+  {
+   "id": "n_sw_potplayer",
+   "name": "PotPlayer 播放器",
+   "names": [
+    "PotPlayer"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "韩国出品的全能本地视频播放器，解码能力强、支持截图与字幕。",
+   "advice": "保留。播放列表与设置为便携版配置文件，删了要重设。"
+  },
+  {
+   "id": "n_sw_jianying",
+   "name": "剪映专业版",
+   "names": [
+    "JianyingPro"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "剪映（CapCut）专业版，目录内存放草稿工程、素材缓存与模板。",
+   "advice": "谨慎。Draft 草稿目录要保留，Cache / 缓存目录可以清；清了草稿会全丢。"
+  },
+  {
+   "id": "n_sw_photoshop",
+   "name": "Photoshop CS6",
+   "names": [
+    "Photoshop_CS6_13.0.1",
+    "Photoshop"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "Adobe Photoshop CS6 图像处理软件安装目录。",
+   "advice": "保留。滤镜与预设可能放在同目录，删了要重装。"
+  },
+  {
+   "id": "n_sw_sai",
+   "name": "SAI Ver.2 绘画软件",
+   "names": [
+    "SAI Ver.2",
+    "SAI"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "Easy PaintTool SAI 2，轻量级数位板绘画软件。",
+   "advice": "保留。笔刷与画纸设置在软件目录内，删了会丢自定义配置。"
+  },
+  {
+   "id": "n_sw_soundpad",
+   "name": "Soundpad 声音面板",
+   "names": [
+    "Soundpad"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "把音频文件通过虚拟麦克风播出去的软件，直播 / 游戏喊话常用。",
+   "advice": "保留。"
+  },
+  {
+   "id": "n_sw_adobe",
+   "name": "Adobe 公共组件",
+   "names": [
+    "com.adobe.dunamis"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "Adobe 全家桶的公共运行时、字体与许可信息缓存。",
+   "advice": "正在用 Adobe 软件就别删；只清 Cache / Media Cache 一类子目录最安全。"
+  },
+  {
+   "id": "n_sw_macromedia",
+   "name": "Macromedia 遗留配置",
+   "names": [
+    "Macromedia"
+   ],
+   "kind": "settings",
+   "risk": "safe",
+   "purpose": "Flash / Dreamweaver 时代留下的旧配置目录，现基本无用。",
+   "advice": "确认没有老软件依赖后可清。"
+  },
+  {
+   "id": "n_sw_pvideo",
+   "name": "PVideoPlayer 播放器组件",
+   "names": [
+    "PVideoPlayer",
+    "ourplayer",
+    "迅雷影音"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "迅雷影音 / 本地视频播放器的缓存与配置。",
+   "advice": "缓存可清，卸载对应播放器后整个目录可删。"
+  },
+  {
+   "id": "n_dev_vscode",
+   "name": "Visual Studio Code",
+   "names": [
+    "Microsoft VS Code",
+    "CodeBuddyExtension"
+   ],
+   "kind": "settings",
+   "risk": "keep",
+   "purpose": "VS Code 编辑器本体 / 用户设置、扩展与工作区缓存的存放位置。",
+   "advice": "保留。User\\settings.json 与 extensions 删了要全部重配与重下插件。"
+  },
+  {
+   "id": "n_dev_hbuilderx",
+   "name": "HBuilderX（DCloud）",
+   "names": [
+    "HBuilder X"
+   ],
+   "kind": "settings",
+   "risk": "keep",
+   "purpose": "DCloud 的 HBuilderX，前端 / uni-app 开发编辑器，目录内是插件与配置。",
+   "advice": "保留。插件与自定义配置都在里面。"
+  },
+  {
+   "id": "n_dev_cocos",
+   "name": "Cocos 引擎",
+   "names": [
+    "Xiamen Yaji Software Co., Ltd"
+   ],
+   "kind": "settings",
+   "risk": "keep",
+   "purpose": "Cocos Creator / Dashboard 的编辑器配置、模板与已登录账号信息。",
+   "advice": "保留。删了要重新登录并重下引擎版本。"
+  },
+  {
+   "id": "n_dev_unreal",
+   "name": "Unreal Engine",
+   "names": [
+    "UnrealEngine",
+    "UnrealEngineLauncher",
+    "EpicGamesLauncher"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "虚幻引擎与 Epic 启动器的缓存、着色器缓存（DerivedDataCache）与日志。",
+   "advice": "DerivedDataCache 与 Logs 可清（会重新生成）；工程与引擎本体别动。"
+  },
+  {
+   "id": "n_dev_monodev",
+   "name": "MonoDevelop / Mono 工具链",
+   "names": [
+    "MonoDevelop-5.0",
+    "MonoDevelop",
+    "Mono"
+   ],
+   "kind": "settings",
+   "risk": "caution",
+   "purpose": "Mono / MonoDevelop（Unity 早期默认 IDE）的配置与缓存。",
+   "advice": "不再做 Unity 的 Mono 开发时可清。"
+  },
+  {
+   "id": "n_dev_ant",
+   "name": "Apache Ant 构建工具",
+   "names": [
+    "apache-ant-1.10.12",
+    "apache-ant"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "Java 项目的构建工具，Android / Cocos 打包链路常会用到。",
+   "advice": "保留（若确实没有 Java 构建需求可删）。"
+  },
+  {
+   "id": "n_dev_adb",
+   "name": "Android platform-tools（ADB）",
+   "names": [
+    "platform-tools-latest-windows",
+    "platform-tools"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "Android SDK 的 adb / fastboot 等命令行工具，刷机与调试必备。",
+   "advice": "保留，体积很小。"
+  },
+  {
+   "id": "n_dev_aspnet",
+   "name": "ASP.NET 运行时",
+   "names": [
+    "ASP.NET"
+   ],
+   "kind": "system",
+   "risk": "caution",
+   "purpose": ".NET / ASP.NET 的运行时与临时编译缓存。",
+   "advice": "Temp 类子目录可清；正在跑的站点会用到它，别整目录删。"
+  },
+  {
+   "id": "n_dev_node_addon",
+   "name": "Node 原生模块加载器",
+   "names": [
+    "node-addon-native-custom-loader"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "某个 Electron / Node 应用加载原生 .node 模块的辅助目录。",
+   "advice": "保留，不确定宿主程序前别删。"
+  },
+  {
+   "id": "n_dev_tortoisegit",
+   "name": "TortoiseGit 配置",
+   "names": [
+    "TortoiseGit"
+   ],
+   "kind": "settings",
+   "risk": "keep",
+   "purpose": "TortoiseGit 的 SSH 密钥缓存、图标覆盖与用户配置。",
+   "advice": "保留。删了要重新配置用户名、邮箱与密钥。"
+  },
+  {
+   "id": "n_dev_servicehub",
+   "name": ".NET ServiceHub",
+   "names": [
+    "ServiceHub",
+    "Microsoft FxCop"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "Visual Studio 的后台服务与诊断缓存（Roslyn 编译器宿主等）。",
+   "advice": "不用 VS 时可清缓存子目录；卸载 VS 后整个目录可删。"
+  },
+  {
+   "id": "n_dev_livepp",
+   "name": "Live++ 热重载工具",
+   "names": [
+    "Live++"
+   ],
+   "kind": "settings",
+   "risk": "caution",
+   "purpose": "C++ 热重载调试工具 Live++ 的配置与临时数据。",
+   "advice": "开发环境留着；不再用可删。"
+  },
+  {
+   "id": "n_dev_fabplugins",
+   "name": "Fab 插件缓存",
+   "names": [
+    "FabPlugins"
+   ],
+   "kind": "cache",
+   "risk": "safe",
+   "purpose": "Epic Fab / 虚幻插件市场下载的插件缓存。",
+   "advice": "可清，插件会在需要时重新下载。"
+  },
+  {
+   "id": "n_dev_visionaire",
+   "name": "Visionaire Studio 引擎",
+   "names": [
+    "VisionaireStudio",
+    "SYSTEMAX Software Development"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "Visionaire Studio（2D 冒险游戏引擎）的配置与项目缓存。",
+   "advice": "不再开发同类项目时可清。"
+  },
+  {
+   "id": "n_dev_mono_common",
+   "name": "开发工具公共目录",
+   "names": [
+    ".mono",
+    "Geckofx",
+    "Geckofx60",
+    "CEF",
+    "xwalk",
+    "xweb",
+    "xweb_webview",
+    "WebView2"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "内嵌浏览器内核（CEF / GeckoFX / WebView2 / xwalk）的运行时与缓存，多个软件共用。",
+   "advice": "缓存可清；正在用的软件会用到这些运行时目录，别整目录删。"
+  },
+  {
+   "id": "n_sw_wegame",
+   "name": "WeGame 腾讯游戏平台",
+   "names": [
+    "NGRLauncher-wegame",
+    "rail"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "腾讯 WeGame 客户端与游戏启动组件（含 rail 运行库）。",
+   "advice": "保留。里面还放着平台的下载与安装记录，删了要重新验证游戏。"
+  },
+  {
+   "id": "n_sw_ubisoft",
+   "name": "Ubisoft Connect",
+   "names": [
+    "Ubisoft Game Launcher"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "育碧游戏平台的客户端与游戏安装点。",
+   "advice": "保留。存档有云同步，但本地缓存删掉要重新同步。"
+  },
+  {
+   "id": "n_sw_ealauncher",
+   "name": "EA 游戏平台",
+   "names": [
+    "Electronic Arts"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "EA App / Origin 平台的配置、缓存与游戏数据。",
+   "advice": "保留。"
+  },
+  {
+   "id": "n_sw_hypergryph",
+   "name": "鹰角网络启动器",
+   "names": [
+    "Hypergryph",
+    "Hypergryph Launcher"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "鹰角网络（《明日方舟》等）的启动器与游戏更新数据。",
+   "advice": "保留。游戏本体与更新包都在这，删了要重下。"
+  },
+  {
+   "id": "n_sw_eos",
+   "name": "Epic Online Services 组件",
+   "names": [
+    "EOSUserHelper",
+    "EOSSDK",
+    "EpicOnlineServices"
+   ],
+   "kind": "system",
+   "risk": "keep",
+   "purpose": "Epic 联机服务（EOS）组件，很多 Steam 游戏的联机 / 成就依赖它。",
+   "advice": "保留。删了会导致部分游戏无法联机。"
+  },
+  {
+   "id": "n_sw_nemuserver",
+   "name": "模拟器服务组件",
+   "names": [
+    "NemuServer",
+    "EMU"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "模拟器（MuMu / yuzu 等）的服务端与用户数据目录。",
+   "advice": "存档与游戏数据要保留；只清日志与缓存子目录。"
+  },
+  {
+   "id": "n_sw_goldberg",
+   "name": "Goldberg Steam 模拟存档",
+   "names": [
+    "Goldberg SteamEmu Saves",
+    "GSE Saves"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "Goldberg / GSE 模拟器的游戏存档目录，单机破解版游戏常写到这里。",
+   "advice": "要留存档就别删；删掉等于清空这些游戏的通关进度。"
+  },
+  {
+   "id": "n_sw_steam_valve",
+   "name": "Valve / Steam 数据",
+   "names": [
+    "Valve Corporation"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "Steam 客户端的配置、云同步缓存与用户数据。",
+   "advice": "保留。config 与 userdata 删了要重新登录并丢本地设置。"
+  },
+  {
+   "id": "n_sw_tencent",
+   "name": "腾讯系软件数据",
+   "names": [
+    "GME",
+    "qq_guild",
+    "qq-chat-updater"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "QQ / 微信 / 腾讯会议等腾讯系软件的聊天记录、缓存与更新组件。",
+   "advice": "聊天记录目录务必保留；Cache / 图片缓存可以清。"
+  },
+  {
+   "id": "n_sw_netease",
+   "name": "网易系软件数据",
+   "names": [
+    "BlueClient",
+    "GSE"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "网易（云音乐 / 游戏）客户端的配置与缓存。",
+   "advice": "缓存可清，登录信息保留。"
+  },
+  {
+   "id": "n_sw_kook",
+   "name": "KOOK 语音",
+   "names": [
+    "KOOK"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "KOOK（原开黑啦）语音软件的缓存与配置。",
+   "advice": "缓存可清，登录态保留。"
+  },
+  {
+   "id": "n_sw_xunlei",
+   "name": "迅雷 / 下载工具",
+   "names": [
+    "adrive-desktop-updater"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "迅雷、百度网盘、阿里云盘等下载 / 网盘客户端的任务记录与缓存。",
+   "advice": "下载缓存可清（清前确认没有未完成的任务），任务列表与登录信息保留。"
+  },
+  {
+   "id": "n_sw_quark",
+   "name": "夸克 / UC 浏览器数据",
+   "names": [
+    "quark-cloud-drive-updater",
+    "com.uc",
+    "UCDownloads"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "夸克浏览器 / 夸克网盘的缓存、下载与配置。",
+   "advice": "Cache 可清；下载目录与账号数据保留。"
+  },
+  {
+   "id": "n_sw_bilibili",
+   "name": "哔哩哔哩客户端",
+   "names": [
+    "bililive",
+    "斗鱼",
+    "Douyu"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "B 站 / 斗鱼直播客户端的视频缓存与配置。",
+   "advice": "视频缓存可清（往往很占地方），登录信息保留。"
+  },
+  {
+   "id": "n_sw_doubao",
+   "name": "豆包 AI 客户端",
+   "names": [
+    "DoubaoLinkRouter",
+    "com.huidou.ai.comics"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "豆包（字节跳动 AI 助手）客户端的缓存、会话与组件。",
+   "advice": "缓存可清，会话历史建议保留。"
+  },
+  {
+   "id": "n_sw_wps",
+   "name": "WPS / 金山办公",
+   "names": [
+    "WPS Office",
+    "ksolaunch"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "WPS Office 的配置、云文档缓存与备份中心数据。",
+   "advice": "备份中心（backup）里可能是未保存的文档，清前先确认。"
+  },
+  {
+   "id": "n_sw_qqmusic_tme",
+   "name": "音乐 / 音频软件",
+   "names": [
+    "Qianqian",
+    "kuwo",
+    "Kugou",
+    "CloudMusic",
+    "duowan"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "千千静听 / 酷我 / 酷狗 / 网易云音乐等音频软件的缓存与配置。",
+   "advice": "歌曲缓存可清，歌单与账号数据保留。"
+  },
+  {
+   "id": "n_sw_winmaster",
+   "name": "国产系统优化工具",
+   "names": [
+    "winmaster",
+    "FanQieClean",
+    "aha_doctor",
+    "GamePP",
+    "GameViewer",
+    "FanQie"
+   ],
+   "kind": "install",
+   "risk": "caution",
+   "purpose": "国产系统清理 / 游戏加速 / 硬件监控类工具的配置与缓存。",
+   "advice": "不再使用可直接卸载；只清缓存也没问题。"
+  },
+  {
+   "id": "n_gm_afterimage",
+   "name": "心渊梦境 Afterimage",
+   "names": [
+    "Afterimage"
+   ],
+   "paths": [
+    "steamapps\\common\\afterimage"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "国产横版类银河恶魔城动作游戏《心渊梦境》本体。",
+   "advice": "删目录等于卸载游戏，存档不在这里（在 AppData 下），但不必手删。"
+  },
+  {
+   "id": "n_gm_asrd",
+   "name": "异形丛生：反应堆空降",
+   "names": [
+    "Alien Swarm Reactive Drop"
+   ],
+   "paths": [
+    "steamapps\\common\\alien swarm reactive drop"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "免费俯视视角合作射击游戏 Alien Swarm: Reactive Drop 本体。",
+   "advice": "免费游戏，删了可在 Steam 重新下载；不必手删。"
+  },
+  {
+   "id": "n_gm_blackmyth",
+   "name": "黑神话：悟空",
+   "names": [
+    "BlackMythWukong",
+    "黑神话"
+   ],
+   "paths": [
+    "steamapps\\common\\blackmythwukong"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《黑神话：悟空》游戏本体（虚幻 5 引擎，体积很大）。",
+   "advice": "删目录等于卸载。存档在 AppData\\Local\\b1 下，别误删。"
+  },
+  {
+   "id": "n_gm_bongocat",
+   "name": "Bongo Cat 桌面小猫",
+   "names": [
+    "BongoCat"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "桌面互动小玩具 Bongo Cat：敲键盘时屏幕上的猫跟着拍鼓。",
+   "advice": "很小，保留。"
+  },
+  {
+   "id": "n_gm_chariot",
+   "name": "Chariot 战车",
+   "names": [
+    "Chariot"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "双人合作平台解谜游戏《Chariot》。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_csgo",
+   "name": "Counter-Strike（CS:GO / CS2）",
+   "names": [
+    "Counter-Strike Global Offensive",
+    "Counter-Strike 2"
+   ],
+   "paths": [
+    "steamapps\\common\\counter-strike global offensive"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "CS:GO / CS2 游戏本体与 workshop 内容。",
+   "advice": "删目录等于卸载，重新下载要十几 GB。"
+  },
+  {
+   "id": "n_gm_dissidia",
+   "name": "最终幻想：纷争 NT 免费版",
+   "names": [
+    "DISSIDIA FINAL FANTASY NT Free Edition"
+   ],
+   "paths": [
+    "steamapps\\common\\dissidia final fantasy nt free edition"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《最终幻想：纷争 NT》免费版，3v3 对战动作游戏。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_deathdoor",
+   "name": "死亡之门 Death's Door",
+   "names": [
+    "Death's Door"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "俯视角动作冒险游戏《死亡之门》。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_drg",
+   "name": "深岩银河 Deep Rock Galactic",
+   "names": [
+    "Deep Rock Galactic"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "四人合作采矿射击游戏《深岩银河》。",
+   "advice": "不必手删。存档在 Steam 云同步。"
+  },
+  {
+   "id": "n_gm_drawguess",
+   "name": "你画我猜 Draw & Guess",
+   "names": [
+    "Draw & Guess",
+    "Draw&Guess"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "多人你画我猜派对游戏，本体与本地图片缓存都在这里。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_gooseduck",
+   "name": "鹅鸭杀 Goose Goose Duck",
+   "names": [
+    "Goose Goose Duck"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "免费社交推理游戏《鹅鸭杀》本体。",
+   "advice": "免费游戏，不必手删。"
+  },
+  {
+   "id": "n_gm_hollowknight",
+   "name": "空洞骑士 Hollow Knight",
+   "names": [
+    "Hollow Knight"
+   ],
+   "paths": [
+    "steamapps\\common\\hollow knight"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《空洞骑士》本体（含两作同名目录时按路径区分）。",
+   "advice": "不必手删。存档在 AppData\\LocalLow\\Team Cherry 下。"
+  },
+  {
+   "id": "n_gm_silksong",
+   "name": "空洞骑士：丝之歌 Silksong",
+   "names": [
+    "Hollow Knight Silksong"
+   ],
+   "paths": [
+    "steamapps\\common\\hollow knight silksong"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《空洞骑士：丝之歌》游戏本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_kotama",
+   "name": "KotamaAcademyCitadel 试玩版",
+   "names": [
+    "KotamaAcademyCitadel_Demo"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《Kotama Academy Citadel》试玩版（Demo）。",
+   "advice": "试玩版可随时重下，删了不可惜。"
+  },
+  {
+   "id": "n_gm_chair",
+   "name": "Lively Chair Simulator",
+   "names": [
+    "Lively Chair Simulator"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "搞怪模拟类小游戏《Lively Chair Simulator》。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_lonelymtn",
+   "name": "孤独群山：速降",
+   "names": [
+    "Lonely Mountains - Downhill"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "山地自行车速降游戏《Lonely Mountains: Downhill》。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_magicraft",
+   "name": "魔法工艺 Magicraft",
+   "names": [
+    "Magicraft"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "国产 Roguelike 建造射击游戏《魔法工艺》。",
+   "advice": "不必手删。存档在 AppData 下同名目录。"
+  },
+  {
+   "id": "n_gm_mirror2",
+   "name": "Mirror 2: Project X",
+   "names": [
+    "Mirror 2 Project X",
+    "Mirror2",
+    "Mirror2_HomeX",
+    "Mirror2_X"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《Mirror 2: Project X》本体 / 启动器的数据目录。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_norest",
+   "name": "恶意不息 No Rest for the Wicked",
+   "names": [
+    "NoRestForTheWicked"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《恶意不息》（No Rest for the Wicked）动作角色扮演游戏本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_ori2",
+   "name": "奥日与精灵意志",
+   "names": [
+    "Ori and the Will of the Wisps"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《奥日与精灵意志》本体 / 存档目录。",
+   "advice": "存档文件夹务必保留。"
+  },
+  {
+   "id": "n_gm_overcooked2",
+   "name": "胡闹厨房 2 Overcooked! 2",
+   "names": [
+    "Overcooked! 2",
+    "Overcooked2"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《胡闹厨房 2》游戏本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_peak",
+   "name": "PEAK 合作登山",
+   "names": [
+    "PEAK"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "四人合作登山生存游戏《PEAK》。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_party_animals",
+   "name": "猛兽派对 Party Animals",
+   "names": [
+    "Party Animals"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "多人派对互殴游戏《猛兽派对》本体。",
+   "advice": "不必手删。体积较大，卸载请走 Steam。"
+  },
+  {
+   "id": "n_gm_pvz",
+   "name": "植物大战僵尸",
+   "names": [
+    "Plants Vs Zombies"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《植物大战僵尸》本体（多为老版本单机版）。",
+   "advice": "不必手删。老游戏体积小，留着做纪念也无妨。"
+  },
+  {
+   "id": "n_gm_pz",
+   "name": "僵尸毁灭工程 Project Zomboid",
+   "names": [
+    "ProjectZomboid"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《僵尸毁灭工程》本体与 mod 目录。",
+   "advice": "存档与 mod 在游戏目录内，删了进度全丢。"
+  },
+  {
+   "id": "n_gm_tts",
+   "name": "桌游模拟器 Tabletop Simulator",
+   "names": [
+    "Tabletop Simulator"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《桌游模拟器》本体，创意工坊的桌游内容往往占很大体积。",
+   "advice": "不必手删。想清空间可在游戏里删订阅内容。"
+  },
+  {
+   "id": "n_gm_invisible_guardian",
+   "name": "隐形守护者",
+   "names": [
+    "The Invisible Guardian",
+    "TheInvisibleGuardian"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "国产互动影像作品《隐形守护者》本体 / 存档目录。",
+   "advice": "存档目录保留；视频资源体积大，删了要重下。"
+  },
+  {
+   "id": "n_gm_witcher3",
+   "name": "巫师 3：狂猎",
+   "names": [
+    "The Witcher 3"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《巫师 3：狂猎》本体与 DLC。",
+   "advice": "不必手删。存档在「文档\\The Witcher 3」下。"
+  },
+  {
+   "id": "n_gm_wuchang",
+   "name": "明末：渊虚之羽",
+   "names": [
+    "Wuchang Fallen Feathers"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "国产类魂动作游戏《明末：渊虚之羽》本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_steam_other",
+   "name": "Steam 库中的其它游戏",
+   "names": [
+    "Egg Surprise",
+    "Junk Artist Playtest",
+    "Paddle Together Demo",
+    "Woodo Demo",
+    "Choppy Cuts Demo",
+    "Cube Racer",
+    "LMSR",
+    "TheEternalDie",
+    "vsrage"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "Steam 库中的游戏 / 试玩版本体目录（小体量独立游戏与 Demo 居多）。",
+   "advice": "删目录等于卸载。Demo 可随时重下；正式版里的存档若在目录内，删前先确认。"
+  },
+  {
+   "id": "n_gm_battleblock",
+   "name": "战斗方块剧场",
+   "names": [
+    "BattleBlockTheate",
+    "BattleBlock Theater"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《战斗方块剧场》本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_billiards",
+   "name": "台球游戏",
+   "names": [
+    "Billiards.of.the.Round.Table"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "圆形球台台球类小游戏本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_blastbrigade",
+   "name": "爆破旅 Blast Brigade",
+   "names": [
+    "Blast Brigade Vs The Evil Legion Of Dr Cread"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "横版跑轰动作游戏《爆破旅》本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_boomerangfu",
+   "name": "回旋镖大乱斗",
+   "names": [
+    "Boomerang Fu"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "派对互殴游戏《回旋镖大乱斗》本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_carto",
+   "name": "纸境奇缘 Carto",
+   "names": [
+    "Carto v1.0.7.6",
+    "Carto"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "拼地图解谜游戏《纸境奇缘》（Carto）本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_catquest2",
+   "name": "猫咪任务 2 Cat Quest II",
+   "names": [
+    "Cat.Quest.II.v1.6.2",
+    "Cat Quest II"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《猫咪任务 2》动作角色扮演游戏本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_diplomacy",
+   "name": "外交不是选项",
+   "names": [
+    "Diplomacy is Not an Option"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "城建 + 塔防 + 即时战略游戏《外交不是选项》本体。",
+   "advice": "不必手删。存档在 AppData 下。"
+  },
+  {
+   "id": "n_gm_eldenring_mod",
+   "name": "艾尔登法环 MOD",
+   "names": [
+    "ELDEN.RING.Deluxe.Edition.MODS",
+    "SIFU_MOD"
+   ],
+   "kind": "game",
+   "risk": "caution",
+   "purpose": "《艾尔登法环》/《师父》等游戏的 MOD 与修改版文件目录。",
+   "advice": "想恢复原版先备份原始文件再动；直接删可能让游戏无法启动。"
+  },
+  {
+   "id": "n_gm_genshin",
+   "name": "原神 Genshin Impact",
+   "names": [
+    "Genshin Impact"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《原神》游戏本体（体积很大，含大量语音与资源包）。",
+   "advice": "删目录等于卸载，要重下几十 GB。清理请用启动器自带的「删除历史资源」。"
+  },
+  {
+   "id": "n_gm_gibbon",
+   "name": "长臂猿：树梢之上",
+   "names": [
+    "Gibbon Beyond the Trees"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《长臂猿：树梢之上》本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_heaveho",
+   "name": "拔河大作战 Heave Ho",
+   "names": [
+    "HeaveHo",
+    "Heave Ho"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "四人合作抓握攀爬派对游戏《Heave Ho》本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_jsab",
+   "name": "只有形状与节拍",
+   "names": [
+    "Just Shapes and Beats"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "音乐弹幕躲避游戏《Just Shapes & Beats》本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_minimotorways",
+   "name": "迷你公路 Mini Motorways",
+   "names": [
+    "Mini Motorways"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "极简风格道路规划游戏《迷你公路》本体。",
+   "advice": "不必手删。存档在 AppData 下。"
+  },
+  {
+   "id": "n_gm_moncage",
+   "name": "笼中窥梦 Moncage",
+   "names": [
+    "Moncage"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "视错觉解谜游戏《笼中窥梦》本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_pes2013",
+   "name": "实况足球 2013",
+   "names": [
+    "PES2013",
+    "Pro Evolution Soccer 2013"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "老牌足球游戏《实况足球 2013》本体与补丁。",
+   "advice": "存档与联赛进度常在游戏目录里，删前先备份存档。"
+  },
+  {
+   "id": "n_gm_speedlimit",
+   "name": "极速限界 Speed Limit",
+   "names": [
+    "Speed Limit",
+    "SpeedLimitGame"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "复古街机风格动作射击游戏《Speed Limit》本体 / 数据。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_bunnyman",
+   "name": "超级兔子人",
+   "names": [
+    "Super Bunny Man_E",
+    "Super Bunny Man"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "物理搞笑合作游戏《超级兔子人》本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_pixelracers",
+   "name": "超级像素赛车",
+   "names": [
+    "Super Pixel Racers"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "像素风竞速游戏《Super Pixel Racers》本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_voxelgram",
+   "name": "立体拼图 Voxelgram",
+   "names": [
+    "Voxelgram"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "3D 数织拼图游戏《Voxelgram》本体。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_webbed",
+   "name": "网 Webbed",
+   "names": [
+    "Webbed"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "扮演小蜘蛛的物理解谜游戏《Webbed》本体 / 配置。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_happenlance",
+   "name": "Happenlance 工作室游戏",
+   "names": [
+    "Happenlance",
+    "Happenlance Studio"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "Happenlance 工作室作品的安装与存档目录。",
+   "advice": "存档建议保留。"
+  },
+  {
+   "id": "n_gm_fist",
+   "name": "暗影火炬城 F.I.S.T.",
+   "names": [
+    "FIST",
+    "F.I.S.T."
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "国产柴油朋克动作游戏《暗影火炬城》本体（Epic 版）。",
+   "advice": "不必手删。"
+  },
+  {
+   "id": "n_gm_hunter",
+   "name": "猎人：荒野的召唤",
+   "names": [
+    "theHunterCallOfTheWild",
+    "theHunter"
+   ],
+   "kind": "game",
+   "risk": "keep",
+   "purpose": "《猎人：荒野的召唤》狩猎模拟游戏本体。",
+   "advice": "不必手删。存档在「文档」下 Avalanche Studios 目录。"
+  },
+  {
+   "id": "n_gm_hunter_dlc",
+   "name": "猎人 DLC 补丁",
+   "names": [
+    "荒野召唤DLC补丁20250622最新版"
+   ],
+   "kind": "game",
+   "risk": "caution",
+   "purpose": "《猎人：荒野的召唤》的非官方 DLC 补丁 / 解锁文件。",
+   "advice": "自行安装的补丁，保留前确认游戏能正常启动；出问题可删掉重装游戏。"
+  },
+  {
+   "id": "n_gm_itakestwo",
+   "name": "双人成行 It Takes Two",
+   "names": [
+    "ItTakesTwo"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "《双人成行》的配置与进度缓存。",
+   "advice": "建议保留，删了可能丢本地进度设置。"
+  },
+  {
+   "id": "n_gm_cuphead",
+   "name": "茶杯头 Cuphead",
+   "names": [
+    "Cuphead"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "《茶杯头》的存档（通关进度就在这里）。",
+   "advice": "务必保留。删掉等于清空通关记录。"
+  },
+  {
+   "id": "n_gm_slay2",
+   "name": "杀戮尖塔 2 存档",
+   "names": [
+    "SlayTheSpire2"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "《杀戮尖塔 2》的解锁进度与 run 存档。",
+   "advice": "保留。"
+  },
+  {
+   "id": "n_gm_trine",
+   "name": "三位一体 2/3/4 存档",
+   "names": [
+    "Trine2",
+    "Trine3",
+    "Trine4"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "《三位一体》系列游戏的存档与设置。",
+   "advice": "保留。"
+  },
+  {
+   "id": "n_gm_nineparchments",
+   "name": "九张羊皮纸存档",
+   "names": [
+    "NineParchments"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "《九张羊皮纸》的存档与配置。",
+   "advice": "保留。"
+  },
+  {
+   "id": "n_gm_bandai",
+   "name": "万代南梦宫游戏数据",
+   "names": [
+    "BANDAI NAMCO Entertainment",
+    "Bandai Namco"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "万代南梦宫旗下游戏（魂系列等）共用的存档 / 配置目录。",
+   "advice": "存档保留。"
+  },
+  {
+   "id": "n_gm_warner",
+   "name": "华纳游戏数据",
+   "names": [
+    "Warner Bros. Interactive Entertainment"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "华纳兄弟发行游戏（蝙蝠侠、中土世界等）的配置与存档。",
+   "advice": "保留。"
+  },
+  {
+   "id": "n_gm_sega",
+   "name": "世嘉游戏数据",
+   "names": [
+    "Sega"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "世嘉（Sega）旗下游戏的配置与存档。",
+   "advice": "保留。"
+  },
+  {
+   "id": "n_gm_crystal",
+   "name": "晶体动力游戏数据",
+   "names": [
+    "Crystal Dynamics"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "Crystal Dynamics（古墓丽影等）游戏的配置与存档。",
+   "advice": "保留。"
+  },
+  {
+   "id": "n_gm_chivalry2",
+   "name": "骑士精神 2",
+   "names": [
+    "Chivalry 2"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "《骑士精神 2》的配置与缓存。",
+   "advice": "保留。"
+  },
+  {
+   "id": "n_gm_enderlilies",
+   "name": "终结的百合花",
+   "names": [
+    "EnderLilies"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "《终结的百合花：骑士们的救赎》的存档与配置。",
+   "advice": "保留。"
+  },
+  {
+   "id": "n_gm_various_saves",
+   "name": "其它游戏的存档与配置",
+   "names": [
+    "AbzuGame",
+    "ALTF4",
+    "Achilles",
+    "Artis",
+    "CITW",
+    "DarkGravity_Demo",
+    "Endling",
+    "Europa",
+    "Everholm",
+    "FallingOut",
+    "Frima_Studio",
+    "GenesisNoir",
+    "Haze1",
+    "HiddenDream",
+    "Jitsu_Squad",
+    "KaoDemo",
+    "Kena",
+    "Longvinter",
+    "Lumione",
+    "Lunar Chili",
+    "Maine",
+    "MandragoraWotWT",
+    "MoC_V1",
+    "MosaLina",
+    "MotorTown",
+    "Pal",
+    "Paralogue",
+    "Pathless",
+    "Project_Plague",
+    "REANIMAL",
+    "RekindledTrails",
+    "RescuePartyLive",
+    "RetraceTheLight",
+    "SB",
+    "Saber",
+    "Sandfall",
+    "Sifu",
+    "Simulator",
+    "SplitFiction",
+    "Starlink",
+    "SuicideSheep",
+    "TheLastSurvivor",
+    "TimeSurvivors",
+    "Umiko",
+    "UnravelTwo",
+    "Voyage",
+    "Victory_Heat_Rally_V4_GMS2",
+    "ZingangGame",
+    "aCoupleOfCubes",
+    "ajugglerstale",
+    "avg-Game",
+    "nyaruru",
+    "com.WonderPotion.Sannabi",
+    "com.tinysurvivors",
+    "cursorblade_demo_v0_27d",
+    "Tudougame Data Saves",
+    "Daedalic Entertainment GmbH",
+    "Publishers",
+    "GameAnalytics",
+    "devtodev",
+    "Hk_project",
+    "LYWX_DEMO",
+    "LiuYin",
+    "PrincessMars",
+    "Noreya"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "各款单机游戏的存档、设置与运行缓存（按游戏或发行商命名）。",
+   "advice": "多数含通关进度，建议整体保留；确实要清空间时先确认里面没有存档文件。"
+  },
+  {
+   "id": "n_sys_crashdumps",
+   "name": "崩溃转储",
+   "names": [
+    "CrashRpt",
+    "CrashReportClient",
+    "RailCrashReport"
+   ],
+   "kind": "temp",
+   "risk": "safe",
+   "purpose": "程序崩溃时生成的内存转储文件，用于排查问题，平时完全用不到。",
+   "advice": "安全可清，单次崩溃可能就占几百 MB。"
+  },
+  {
+   "id": "n_sys_temp",
+   "name": "临时文件 Temp",
+   "names": [
+    "Temporary Internet Files"
+   ],
+   "kind": "temp",
+   "risk": "safe",
+   "purpose": "程序运行时的临时文件堆放处，正常退出后会清掉一部分，剩下的都是残留。",
+   "advice": "安全可清（正在运行的程序占用的文件会自动跳过）。"
+  },
+  {
+   "id": "n_sys_diag",
+   "name": "诊断与遥测日志",
+   "names": [
+    "Diagnostics",
+    "CoreLog",
+    "PLogs",
+    "Sentry"
+   ],
+   "kind": "log",
+   "risk": "safe",
+   "purpose": "系统与软件的诊断、遥测、崩溃上报日志，仅供开发者排查用。",
+   "advice": "安全可清。"
+  },
+  {
+   "id": "n_sys_toast",
+   "name": "通知组件缓存",
+   "names": [
+    "ToastNotificationManagerCompat",
+    "ConnectedDevicesPlatform",
+    "Comms",
+    "Application Data",
+    "History",
+    "INetHistory"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "系统通知、设备互联、历史记录等系统组件的状态缓存。",
+   "advice": "多数可清；不确定时留着，占用通常不大。"
+  },
+  {
+   "id": "n_sys_nvidia",
+   "name": "NVIDIA 驱动组件",
+   "names": [
+    "NVIDIA",
+    "NVIDIA Corporation",
+    "AMD_Common"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "显卡 / 主板厂商驱动的配置、着色器缓存与安装残留。",
+   "advice": "缓存（如 DXCache、GLCache）可清；驱动本体与配置别动，删了游戏会报错。"
+  },
+  {
+   "id": "n_sys_microsoft_local",
+   "name": "微软公共数据（Local）",
+   "names": [
+    "Microsoft"
+   ],
+   "paths": [
+    "appdata\\local\\microsoft",
+    "appdata\\roaming\\microsoft"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "微软系组件（Office、Edge、Visual Studio、OneDrive 等）共用的本地数据。",
+   "advice": "别整体删。这里没有能一次性安全清空的子目录，针对具体软件再处理。"
+  },
+  {
+   "id": "n_sys_webview2",
+   "name": "WebView2 运行时数据",
+   "names": [
+    "EbWebView"
+   ],
+   "kind": "cache",
+   "risk": "caution",
+   "purpose": "Edge WebView2 内核的浏览器缓存，很多桌面软件的内嵌网页都用它。",
+   "advice": "缓存可清；它同时保存了部分软件的登录态，清了要重新登录。"
+  },
+  {
+   "id": "n_sys_backup",
+   "name": "备份与还原点",
+   "names": [
+    "Backup",
+    "winbackups",
+    "RegBack",
+    "SystemRestore"
+   ],
+   "kind": "backup",
+   "risk": "caution",
+   "purpose": "系统还原点、注册表备份与软件自建备份。",
+   "advice": "谨慎。确认没有需要回滚的改动再清，否则出问题时无法还原。"
+  },
+  {
+   "id": "n_sys_programs",
+   "name": "用户级程序目录",
+   "names": [
+    "Programs(x86)"
+   ],
+   "kind": "install",
+   "risk": "keep",
+   "purpose": "以当前用户身份安装的软件（不需要管理员权限的那种）。",
+   "advice": "保留。这里是真正的程序目录，删了软件就打不开了。"
+  },
+  {
+   "id": "n_sys_placeholder",
+   "name": "占位与空目录",
+   "names": [
+    "PlaceholderTileLogoFolder",
+    "新建文件夹",
+    "b1",
+    "Tmon",
+    "TDM",
+    "xmp",
+    "lds",
+    "NGR",
+    "DBG",
+    "Parse",
+    "aspnet"
+   ],
+   "kind": "temp",
+   "risk": "caution",
+   "purpose": "安装残留、占位文件夹或用途不明的历史目录。",
+   "advice": "先看清内容再决定；若确认对应软件已卸载，可清空回收空间。"
+  },
+  {
+   "id": "n_app_cleanup_tools",
+   "name": "清理 / 优化工具的自身数据",
+   "names": [
+    "CleanSweep",
+    "YYYCleanSweep",
+    "SweepModern",
+    "MyMacro",
+    "qmacro",
+    "colortxt",
+    "miniconfig",
+    "utForpc"
+   ],
+   "kind": "data",
+   "risk": "caution",
+   "purpose": "清理工具、小工具与自研脚本的配置数据（含本工具自己的记录）。",
+   "advice": "建议保留，里面通常放着规则、白名单与历史记录；卸载对应工具后再删。"
+  },
+  {
+   "id": "n_gm_eldenring_save2",
+   "name": "艾尔登法环存档",
+   "names": [
+    "EldenRing"
+   ],
+   "paths": [
+    "appdata\roaming\\eldenring"
+   ],
+   "kind": "data",
+   "risk": "keep",
+   "purpose": "《艾尔登法环》的角色存档（ER0000.sl2 等）与设置，位于 AppData\\Roaming\\EldenRing。",
+   "advice": "务必保留并定期备份。这里删掉进度就无法找回。"
+  }
+ ]
+}

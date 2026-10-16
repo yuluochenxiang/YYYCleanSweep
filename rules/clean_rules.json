@@ -1,0 +1,1279 @@
+{
+  "version": "1.0",
+  "updated": "2026-10-11",
+  "categories": [
+    {
+      "id": "temp",
+      "name": "系统临时",
+      "order": 1
+    },
+    {
+      "id": "update",
+      "name": "Windows 更新",
+      "order": 2
+    },
+    {
+      "id": "browser",
+      "name": "浏览器",
+      "order": 3
+    },
+    {
+      "id": "app",
+      "name": "应用缓存",
+      "order": 4
+    },
+    {
+      "id": "dev",
+      "name": "开发缓存",
+      "order": 5
+    },
+    {
+      "id": "privacy",
+      "name": "隐私痕迹",
+      "order": 6
+    },
+    {
+      "id": "system",
+      "name": "系统高级",
+      "order": 7
+    },
+    {
+      "id": "migrate",
+      "name": "迁移建议",
+      "order": 8
+    }
+  ],
+  "rules": [
+    {
+      "id": "user_temp",
+      "category": "temp",
+      "name": "用户临时文件",
+      "paths": [
+        "%TEMP%"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "各类软件运行时产生的临时文件，正常退出后本应自动删除，常有残留。",
+      "advice": "可直接清理。正在被占用的文件会自动跳过，不影响运行中程序。",
+      "operation": "删除目录内全部文件与子文件夹，保留目录本身",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "local_low_temp",
+      "category": "temp",
+      "name": "LocalLow 临时目录",
+      "paths": [
+        "%USERPROFILE%\\AppData\\LocalLow\\Temp"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "低完整性级别程序的临时目录，浏览器插件与游戏常用。",
+      "advice": "可直接清理。",
+      "operation": "删除目录内全部内容",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "win_temp",
+      "category": "temp",
+      "name": "Windows 临时文件",
+      "paths": [
+        "C:\\Windows\\Temp"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": true,
+      "desc": "系统级临时目录，安装程序与系统服务的临时落脚点。",
+      "advice": "需要管理员权限，占用中的文件会跳过。",
+      "operation": "删除目录内全部内容",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "thumb_cache",
+      "category": "temp",
+      "name": "缩略图缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Windows\\Explorer"
+      ],
+      "mode": "delete_files",
+      "patterns": [
+        "thumbcache_*.db",
+        "thumbidx_*.db"
+      ],
+      "risk": "safe",
+      "admin": false,
+      "desc": "资源管理器为图片视频生成的缩略图数据库，可累积到数 GB。",
+      "advice": "建议先关闭文件资源管理器再清理，否则部分文件被占用无法删除。",
+      "operation": "删除 thumbcache_*.db 与 thumbidx_*.db",
+      "recovery": "打开文件夹时自动重建"
+    },
+    {
+      "id": "icon_cache",
+      "category": "temp",
+      "name": "图标缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\IconCache.db"
+      ],
+      "mode": "delete_files",
+      "patterns": [
+        "IconCache.db"
+      ],
+      "risk": "safe",
+      "admin": false,
+      "desc": "系统图标缓存数据库，图标显示异常时重建可修复。",
+      "advice": "清理后需重启资源管理器生效。",
+      "operation": "删除 IconCache.db",
+      "recovery": "重启资源管理器后自动重建"
+    },
+    {
+      "id": "prefetch",
+      "category": "temp",
+      "name": "预读取文件",
+      "paths": [
+        "C:\\Windows\\Prefetch"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": true,
+      "desc": "Windows 为加速启动预加载的数据，长期不清理会堆积上千个文件。",
+      "advice": "清理后开机首次启动略慢，之后会重新积累。",
+      "operation": "删除目录内全部内容",
+      "recovery": "系统自动重建"
+    },
+    {
+      "id": "crash_dumps_user",
+      "category": "temp",
+      "name": "用户崩溃转储",
+      "paths": [
+        "%LOCALAPPDATA%\\CrashDumps"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "程序崩溃时生成的内存转储文件，单个可达数百 MB。",
+      "advice": "除非你正在排查某个软件崩溃原因，否则可直接清理。",
+      "operation": "删除目录内全部内容",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "crash_dumps_sys",
+      "category": "temp",
+      "name": "系统崩溃转储",
+      "paths": [
+        "C:\\Windows\\Minidump"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": true,
+      "desc": "蓝屏时系统生成的小型内存转储。",
+      "advice": "除非正在排查蓝屏原因，否则可直接清理。",
+      "operation": "删除目录内全部内容",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "inet_cache",
+      "category": "temp",
+      "name": "IE 与网络缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Windows\\INetCache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "Internet Explorer 及部分系统组件的网页缓存。",
+      "advice": "可直接清理，不影响现代浏览器。",
+      "operation": "删除目录内全部内容",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "d3d_cache",
+      "category": "temp",
+      "name": "DirectX 着色器缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\D3DSCache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "DirectX 运行时的着色器缓存。",
+      "advice": "可直接清理，游戏启动时重建。",
+      "operation": "删除目录内全部内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "font_cache",
+      "category": "temp",
+      "name": "字体缓存",
+      "paths": [
+        "C:\\Windows\\ServiceProfiles\\LocalService\\AppData\\Local\\FontCache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": true,
+      "desc": "系统字体缓存，字体显示异常时可重建修复。",
+      "advice": "可直接清理。",
+      "operation": "删除目录内全部内容",
+      "recovery": "重启后自动重建"
+    },
+    {
+      "id": "recycle_bin",
+      "category": "temp",
+      "name": "回收站",
+      "paths": [],
+      "mode": "command",
+      "risk": "safe",
+      "admin": false,
+      "command": "PowerShell -NoProfile -Command \"Clear-RecycleBin -Force -ErrorAction SilentlyContinue\"",
+      "desc": "各分区回收站中已删除但尚未释放的文件。",
+      "advice": "确认没有误删文件需要还原后再清理。",
+      "operation": "调用系统命令清空所有分区回收站",
+      "recovery": "不可恢复"
+    },
+    {
+      "id": "wu_download",
+      "category": "update",
+      "name": "Windows 更新下载缓存",
+      "paths": [
+        "C:\\Windows\\SoftwareDistribution\\Download"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": true,
+      "desc": "已下载但尚未安装或安装后残留的更新包，常见 1–5 GB。",
+      "advice": "建议先停止 Windows Update 服务再清理；正在下载更新时勿清理。",
+      "operation": "停止 wuauserv 后删除目录内容，再启动服务",
+      "recovery": "重新检查更新时会再次下载"
+    },
+    {
+      "id": "winsxs",
+      "category": "update",
+      "name": "WinSxS 组件存储",
+      "paths": [
+        "C:\\Windows\\WinSxS"
+      ],
+      "mode": "command",
+      "risk": "caution",
+      "admin": true,
+      "command": "DISM /Online /Cleanup-Image /StartComponentCleanup",
+      "desc": "Windows 组件存储，保存着所有系统组件与旧版备份，通常 8–15 GB。",
+      "advice": "绝对不要手动删除此目录！必须使用 DISM 命令安全清理。",
+      "operation": "调用 DISM 清理被取代的组件版本",
+      "recovery": "不可回退已安装更新"
+    },
+    {
+      "id": "windows_old",
+      "category": "update",
+      "name": "Windows.old 旧系统",
+      "paths": [
+        "C:\\Windows.old"
+      ],
+      "mode": "delete_dir",
+      "risk": "caution",
+      "admin": true,
+      "desc": "大版本升级时保留的旧系统文件，通常 10–30 GB。",
+      "advice": "删除后无法回退到升级前的系统版本，确认新系统稳定后再清。",
+      "operation": "删除整个目录",
+      "recovery": "不可恢复"
+    },
+    {
+      "id": "delivery_opt",
+      "category": "update",
+      "name": "传递优化缓存",
+      "paths": [
+        "C:\\Windows\\DeliveryOptimization",
+        "C:\\Windows\\SoftwareDistribution\\DeliveryOptimization"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": true,
+      "desc": "Windows 更新与商店应用的 P2P 分发缓存。",
+      "advice": "可直接清理。",
+      "operation": "删除目录内全部内容",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "cbs_logs",
+      "category": "update",
+      "name": "CBS 与 DISM 日志",
+      "paths": [
+        "C:\\Windows\\Logs\\CBS"
+      ],
+      "mode": "delete_files",
+      "patterns": [
+        "*.log",
+        "*.cab",
+        "*.txt"
+      ],
+      "risk": "safe",
+      "admin": true,
+      "desc": "组件服务日志，长期累积可达数百 MB。",
+      "advice": "可直接清理。",
+      "operation": "删除日志与临时 cab 文件",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "win_bt",
+      "category": "update",
+      "name": "Windows 升级临时目录",
+      "paths": [
+        "C:\\$WINDOWS.~BT",
+        "C:\\$WINDOWS.~WS"
+      ],
+      "mode": "delete_dir",
+      "risk": "caution",
+      "admin": true,
+      "desc": "功能升级失败或中断后残留的临时安装目录。",
+      "advice": "确认当前系统运行正常、无待完成的升级后再清理。",
+      "operation": "删除整个目录",
+      "recovery": "不可恢复"
+    },
+    {
+      "id": "chrome_cache",
+      "category": "browser",
+      "name": "Chrome 缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\Cache",
+        "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\Code Cache",
+        "%LOCALAPPDATA%\\Google\\Chrome\\User Data\\Default\\GPUCache"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": false,
+      "desc": "Chrome 的网页缓存、代码缓存与 GPU 缓存。",
+      "advice": "清理缓存不会退出登录，但首次访问网站会变慢。建议先关闭 Chrome。",
+      "operation": "删除缓存目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "edge_cache",
+      "category": "browser",
+      "name": "Edge 缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\Default\\Cache",
+        "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\Default\\Code Cache",
+        "%LOCALAPPDATA%\\Microsoft\\Edge\\User Data\\Default\\GPUCache"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": false,
+      "desc": "Microsoft Edge 的各类缓存。",
+      "advice": "建议先关闭 Edge 再清理。",
+      "operation": "删除缓存目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "browser_360",
+      "category": "browser",
+      "name": "360 安全浏览器缓存",
+      "paths": [
+        "%APPDATA%\\360se6\\User Data\\Default\\Cache",
+        "%APPDATA%\\360se6\\Application\\%360se6_VERSION%\\Cache"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": false,
+      "desc": "360 安全浏览器的缓存与历史数据。",
+      "advice": "建议先关闭浏览器再清理。",
+      "operation": "删除缓存目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "firefox_cache",
+      "category": "browser",
+      "name": "Firefox 缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\Mozilla\\Firefox\\Profiles"
+      ],
+      "mode": "glob_dirs",
+      "glob_pattern": "*\\cache2",
+      "risk": "caution",
+      "admin": false,
+      "desc": "Firefox 各配置文件的缓存目录。",
+      "advice": "建议先关闭 Firefox 再清理。",
+      "operation": "删除各配置下 cache2 目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "browser_cookies",
+      "category": "browser",
+      "name": "浏览器 Cookie 与登录态",
+      "paths": [],
+      "mode": "manual",
+      "risk": "danger",
+      "admin": false,
+      "desc": "保存着各网站的登录状态、偏好设置与购物车。",
+      "advice": "清理后所有网站需要重新登录。除非有明确隐私需求，否则不建议清理。",
+      "operation": "请在浏览器「设置 → 隐私与安全 → 清除浏览数据」中手动操作",
+      "recovery": "不可恢复"
+    },
+    {
+      "id": "nvidia_dxcache",
+      "category": "app",
+      "name": "NVIDIA 着色器缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\NVIDIA\\DXCache",
+        "%LOCALAPPDATA%\\NVIDIA\\GLCache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "NVIDIA 显卡为游戏预编译的着色器缓存，游戏装多了可达数 GB。",
+      "advice": "可直接清理，删后首次进游戏会重新编译、短暂掉帧。",
+      "operation": "删除缓存目录内容",
+      "recovery": "游戏启动时自动重建"
+    },
+    {
+      "id": "amd_cache",
+      "category": "app",
+      "name": "AMD 着色器缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\AMD\\DxCache",
+        "%LOCALAPPDATA%\\AMD\\GLCache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "AMD 显卡的着色器缓存。",
+      "advice": "可直接清理。",
+      "operation": "删除缓存目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "steam_cache",
+      "category": "app",
+      "name": "Steam 着色器与下载缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\Steam\\shadercache",
+        "%LOCALAPPDATA%\\Steam\\htmlcache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "Steam 的着色器缓存与网页缓存。",
+      "advice": "可直接清理，建议先关闭 Steam。",
+      "operation": "删除缓存目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "epic_cache",
+      "category": "app",
+      "name": "Epic Games 启动器缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\EpicGamesLauncher\\Saved\\webcache",
+        "%LOCALAPPDATA%\\EpicGamesLauncher\\Saved\\logs"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "Epic 启动器的网页缓存与日志。",
+      "advice": "可直接清理。",
+      "operation": "删除缓存目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "adobe_cache",
+      "category": "app",
+      "name": "Adobe 媒体缓存",
+      "paths": [
+        "%APPDATA%\\Adobe\\Common\\Media Cache",
+        "%APPDATA%\\Adobe\\Common\\Media Cache Files"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "PS / PR / AE 的媒体与预览缓存，剪片久了可达数 GB。",
+      "advice": "只影响预览渲染速度，不影响你的工程文件，可直接清理。",
+      "operation": "删除缓存目录内容",
+      "recovery": "下次打开项目时重建"
+    },
+    {
+      "id": "office_cache",
+      "category": "app",
+      "name": "Office 缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Office\\16.0\\OfficeFileCache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "Office 的文件缓存。",
+      "advice": "建议先关闭 Word / Excel 再清理。",
+      "operation": "删除缓存目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "squirrel_temp",
+      "category": "app",
+      "name": "Squirrel 更新临时包",
+      "paths": [
+        "%LOCALAPPDATA%\\SquirrelTemp"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "Electron 系应用（VS Code、各类桌面端）升级时留下的临时安装包。",
+      "advice": "升级完成后即为垃圾，可直接清理。",
+      "operation": "删除目录内全部内容",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "app_updaters",
+      "category": "app",
+      "name": "更新器残留目录",
+      "paths": [
+        "%LOCALAPPDATA%"
+      ],
+      "mode": "glob_dirs",
+      "glob_pattern": "@*-updater",
+      "risk": "safe",
+      "admin": false,
+      "desc": "WorkBuddy、ZCode、DeepSeek、夸克、B站等桌面端升级后残留的旧安装包，单个可达数百 MB。",
+      "advice": "升级完成后即为垃圾，是最容易被忽略的空间杀手，可直接清理。",
+      "operation": "删除匹配的 @*-updater 目录",
+      "recovery": "下次升级时重建"
+    },
+    {
+      "id": "pip_cache",
+      "category": "dev",
+      "name": "pip 下载缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\pip\\cache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "pip 下载过的 wheel 包缓存。",
+      "advice": "可直接清理，或用命令 pip cache purge。下次安装会重新下载。",
+      "operation": "删除缓存目录内容",
+      "recovery": "重新下载"
+    },
+    {
+      "id": "npm_cache",
+      "category": "dev",
+      "name": "npm 缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\npm-cache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "npm 的包缓存。",
+      "advice": "可直接清理，或用 npm cache clean --force。",
+      "operation": "删除缓存目录内容",
+      "recovery": "重新下载"
+    },
+    {
+      "id": "yarn_cache",
+      "category": "dev",
+      "name": "Yarn 缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\Yarn\\Cache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "Yarn 的包缓存。",
+      "advice": "可直接清理。",
+      "operation": "删除缓存目录内容",
+      "recovery": "重新下载"
+    },
+    {
+      "id": "pnpm_store",
+      "category": "dev",
+      "name": "pnpm 存储",
+      "paths": [
+        "%LOCALAPPDATA%\\pnpm-store"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "pnpm 的全局内容寻址存储。",
+      "advice": "可直接清理，下次安装会重新拉取。",
+      "operation": "删除存储目录内容",
+      "recovery": "重新下载"
+    },
+    {
+      "id": "uv_cache",
+      "category": "dev",
+      "name": "uv 缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\uv\\cache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "Python 包管理器 uv 的缓存，可膨胀到数 GB。",
+      "advice": "可直接清理，或用 uv cache clean。",
+      "operation": "删除缓存目录内容",
+      "recovery": "重新下载"
+    },
+    {
+      "id": "gradle_cache",
+      "category": "dev",
+      "name": "Gradle 缓存",
+      "paths": [
+        "%USERPROFILE%\\.gradle\\caches"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": false,
+      "desc": "Gradle 的依赖与构建缓存。",
+      "advice": "清理后首次构建会显著变慢，需重新下载依赖。",
+      "operation": "删除缓存目录内容",
+      "recovery": "重新下载"
+    },
+    {
+      "id": "maven_repo",
+      "category": "dev",
+      "name": "Maven 本地仓库",
+      "paths": [
+        "%USERPROFILE%\\.m2\\repository"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": false,
+      "desc": "Maven 已下载的依赖库。",
+      "advice": "清理后需重新下载全部依赖，离线开发时不要清理。",
+      "operation": "删除仓库目录内容",
+      "recovery": "重新下载"
+    },
+    {
+      "id": "hf_cache",
+      "category": "dev",
+      "name": "AI 模型缓存",
+      "paths": [
+        "%USERPROFILE%\\.cache\\huggingface",
+        "%USERPROFILE%\\.cache\\torch"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": false,
+      "desc": "HuggingFace / PyTorch 下载的模型权重，单个模型常 1–10 GB。",
+      "advice": "清理后运行 AI 程序需重新下载模型，确认不再使用再清。",
+      "operation": "删除模型缓存目录内容",
+      "recovery": "重新下载"
+    },
+    {
+      "id": "docker_data",
+      "category": "dev",
+      "name": "Docker 数据与镜像",
+      "paths": [],
+      "mode": "manual",
+      "risk": "caution",
+      "admin": false,
+      "desc": "Docker 镜像层与容器数据，通常存放在 WSL2 虚拟磁盘中。",
+      "advice": "请在 Docker Desktop 的 Troubleshoot → Clean / Purge data 中操作，或用 docker system prune -a。",
+      "operation": "需在 Docker Desktop 内手动清理",
+      "recovery": "重新拉取镜像"
+    },
+    {
+      "id": "vscode_logs",
+      "category": "dev",
+      "name": "VS Code 日志与缓存",
+      "paths": [
+        "%APPDATA%\\Code\\logs",
+        "%APPDATA%\\Code\\CachedData"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "VS Code 的运行日志与缓存数据。",
+      "advice": "可直接清理，不影响插件与设置。",
+      "operation": "删除日志与缓存目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "jetbrains_cache",
+      "category": "dev",
+      "name": "JetBrains 缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\JetBrains"
+      ],
+      "mode": "glob_dirs",
+      "glob_pattern": "*\\*.log*",
+      "risk": "caution",
+      "admin": false,
+      "desc": "IDEA / PyCharm 等 JetBrains 系列 IDE 的日志缓存。",
+      "advice": "建议用 IDE 自带的 File → Invalidate Caches 功能。",
+      "operation": "清理日志文件",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "jump_lists",
+      "category": "privacy",
+      "name": "最近文档跳转列表",
+      "paths": [
+        "%APPDATA%\\Microsoft\\Windows\\Recent\\AutomaticDestinations",
+        "%APPDATA%\\Microsoft\\Windows\\Recent\\CustomDestinations"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": false,
+      "desc": "任务栏右键「最近使用的文件」列表数据。",
+      "advice": "清理只影响快捷列表，不会删除文件本身。",
+      "operation": "删除跳转列表数据",
+      "recovery": "使用文件时重新生成"
+    },
+    {
+      "id": "wer_user",
+      "category": "privacy",
+      "name": "Windows 错误报告",
+      "paths": [
+        "%LOCALAPPDATA%\\Microsoft\\Windows\\WER"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "程序崩溃时收集的错误报告队列与转储。",
+      "advice": "可直接清理。",
+      "operation": "删除错误报告内容",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "wer_sys",
+      "category": "privacy",
+      "name": "系统错误报告队列",
+      "paths": [
+        "C:\\ProgramData\\Microsoft\\Windows\\WER"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": true,
+      "desc": "系统级别的错误报告队列。",
+      "advice": "可直接清理。",
+      "operation": "删除错误报告内容",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "activity_history",
+      "category": "privacy",
+      "name": "活动历史记录",
+      "paths": [
+        "%LOCALAPPDATA%\\ConnectedDevicesPlatform"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": false,
+      "desc": "Windows 时间线记录的跨设备活动历史。",
+      "advice": "清理后时间线为空，不影响文件与账户。",
+      "operation": "删除活动历史数据",
+      "recovery": "不可恢复"
+    },
+    {
+      "id": "clipboard_history",
+      "category": "privacy",
+      "name": "剪贴板历史",
+      "paths": [],
+      "mode": "manual",
+      "risk": "caution",
+      "admin": false,
+      "desc": "Win+V 保存的剪贴板历史记录。",
+      "advice": "请在「设置 → 系统 → 剪贴板 → 清除剪贴板数据」中手动操作。",
+      "operation": "需手动在系统设置中清除",
+      "recovery": "不可恢复"
+    },
+    {
+      "id": "hiberfil",
+      "category": "system",
+      "name": "休眠文件 hiberfil.sys",
+      "paths": [],
+      "mode": "command",
+      "risk": "caution",
+      "admin": true,
+      "command": "powercfg /h off",
+      "desc": "休眠功能占用的系统文件，大小约等于物理内存的 40%。",
+      "advice": "关闭后无法使用休眠，但快速启动不受影响。想恢复用 powercfg /h on。",
+      "operation": "执行 powercfg /h off 关闭休眠并删除文件",
+      "recovery": "执行 powercfg /h on 可恢复"
+    },
+    {
+      "id": "pagefile",
+      "category": "system",
+      "name": "虚拟内存页面文件",
+      "paths": [
+        "C:\\pagefile.sys"
+      ],
+      "mode": "manual",
+      "risk": "migrate",
+      "admin": true,
+      "desc": "虚拟内存文件，默认放在 C 盘且常被配置得过大，是最容易被忽略的十几 GB。",
+      "advice": "不要删除，应在「系统属性 → 高级 → 性能 → 虚拟内存」中把 C 盘设为无分页文件、改到空间充足的盘，重启生效。",
+      "operation": "迁移到其他分区（需重启），不建议直接删除",
+      "recovery": "重新设置即可"
+    },
+    {
+      "id": "restore_points",
+      "category": "system",
+      "name": "系统还原点",
+      "paths": [],
+      "mode": "command",
+      "risk": "caution",
+      "admin": true,
+      "command": "vssadmin delete shadows /for=C: /oldest /quiet",
+      "desc": "系统还原与文件历史占用的卷影副本空间。",
+      "advice": "建议保留最新的一个还原点，只删除旧快照。",
+      "operation": "删除最旧的卷影副本",
+      "recovery": "不可恢复"
+    },
+    {
+      "id": "live_kernel",
+      "category": "system",
+      "name": "LiveKernelReports",
+      "paths": [
+        "C:\\Windows\\LiveKernelReports"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": true,
+      "desc": "内核级实时错误报告。",
+      "advice": "可直接清理。",
+      "operation": "删除报告文件",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "cleanmgr",
+      "category": "system",
+      "name": "Windows 磁盘清理",
+      "paths": [],
+      "mode": "command",
+      "risk": "safe",
+      "admin": false,
+      "command": "cleanmgr /sagerun:1",
+      "desc": "调用 Windows 自带的磁盘清理，可处理本工具未覆盖的系统项目。",
+      "advice": "首次使用需手动运行 cleanmgr /sageset:1 勾选项目，之后可用此命令静默执行。",
+      "operation": "调用系统磁盘清理",
+      "recovery": "视勾选项目而定"
+    },
+    {
+      "id": "storage_sense",
+      "category": "system",
+      "name": "存储感知",
+      "paths": [],
+      "mode": "manual",
+      "risk": "info",
+      "admin": false,
+      "desc": "Windows 的自动清理功能，可定时清理临时文件与回收站。",
+      "advice": "建议在「设置 → 系统 → 存储 → 存储感知」中开启并设为每周运行，从源头减少堆积。",
+      "operation": "需手动在系统设置中开启",
+      "recovery": "不适用"
+    },
+    {
+      "id": "installer_cache",
+      "category": "system",
+      "name": "Windows Installer 缓存",
+      "paths": [
+        "C:\\Windows\\Installer"
+      ],
+      "mode": "manual",
+      "risk": "danger",
+      "admin": true,
+      "desc": "MSI 安装包缓存，用于软件的修改、修复与卸载。",
+      "advice": "绝对不要手动删除！删除后软件将无法卸载或修复。如需清理请用 PatchCleaner 等专用工具处理孤立项。",
+      "operation": "不建议操作，仅作提示",
+      "recovery": "不可恢复，可能导致软件无法卸载"
+    },
+    {
+      "id": "driver_store",
+      "category": "system",
+      "name": "驱动备份库",
+      "paths": [
+        "C:\\Windows\\System32\\DriverStore\\FileRepository"
+      ],
+      "mode": "manual",
+      "risk": "danger",
+      "admin": true,
+      "desc": "系统保存的第三方驱动安装包备份。",
+      "advice": "不建议手动删除，可能导致设备无法重新安装驱动。如确需清理，请用 DISM 的驱动清理命令。",
+      "operation": "不建议操作，仅作提示",
+      "recovery": "不可恢复"
+    },
+    {
+      "id": "mg_wechat",
+      "category": "migrate",
+      "name": "微信 / QQ 聊天数据",
+      "paths": [
+        "%APPDATA%\\Tencent"
+      ],
+      "mode": "manual",
+      "risk": "migrate",
+      "admin": false,
+      "desc": "微信与 QQ 的聊天记录、图片、文件缓存，长期使用可达数 GB 甚至十几 GB。",
+      "advice": "不要删除！在微信「设置 → 文件管理 → 更改」中把存储位置改到空间充足的盘，数据会自动迁移。",
+      "operation": "在客户端内修改存储路径",
+      "recovery": "不适用"
+    },
+    {
+      "id": "mg_user_folders",
+      "category": "migrate",
+      "name": "桌面 / 文档 / 下载",
+      "paths": [
+        "%USERPROFILE%\\Desktop",
+        "%USERPROFILE%\\Documents",
+        "%USERPROFILE%\\Downloads"
+      ],
+      "mode": "manual",
+      "risk": "migrate",
+      "admin": false,
+      "desc": "个人文件夹默认都在 C 盘，文件存多了会直接撑爆系统盘。",
+      "advice": "右键文件夹 → 属性 → 位置 → 移动到 D 或 E 盘，系统会自动迁移现有文件。",
+      "operation": "通过文件夹属性的「位置」选项卡迁移",
+      "recovery": "可改回原位置"
+    },
+    {
+      "id": "mg_netdisk",
+      "category": "migrate",
+      "name": "网盘下载与缓存目录",
+      "paths": [
+        "%LOCALAPPDATA%\\Programs\\quark-cloud-drive",
+        "%LOCALAPPDATA%\\Programs\\aDrive",
+        "%APPDATA%\\baidu"
+      ],
+      "mode": "manual",
+      "risk": "migrate",
+      "admin": false,
+      "desc": "百度网盘、夸克、阿里云盘的默认下载与缓存目录。",
+      "advice": "在各网盘客户端的「设置 → 传输 / 下载目录」中改到其他盘。",
+      "operation": "在客户端设置中修改下载与缓存目录",
+      "recovery": "可改回"
+    },
+    {
+      "id": "mg_steam",
+      "category": "migrate",
+      "name": "Steam 游戏库",
+      "paths": [],
+      "mode": "manual",
+      "risk": "migrate",
+      "admin": false,
+      "desc": "安装在 C 盘的游戏本体，是最大的空间占用来源。",
+      "advice": "在 Steam「设置 → 下载 → 内容库」中添加其他盘的游戏库文件夹，然后用「移动安装文件夹」搬运，无需重新下载。",
+      "operation": "在 Steam 中添加库文件夹并移动安装位置",
+      "recovery": "可移回"
+    },
+    {
+      "id": "mg_godot",
+      "category": "migrate",
+      "name": "Godot 导出模板",
+      "paths": [
+        "%APPDATA%\\Godot\\export_templates"
+      ],
+      "mode": "manual",
+      "risk": "migrate",
+      "admin": false,
+      "desc": "Godot 引擎各版本的导出模板，每个版本约 1 GB。",
+      "advice": "在 Godot「编辑器设置 → 导出模板路径」中改到其他盘，然后把文件夹移过去。",
+      "operation": "修改导出模板路径后手动移动文件夹",
+      "recovery": "可移回"
+    },
+    {
+      "id": "mg_media_editor",
+      "category": "migrate",
+      "name": "剪映 / 视频编辑器缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\JianyingPro"
+      ],
+      "mode": "manual",
+      "risk": "migrate",
+      "admin": false,
+      "desc": "剪映专业版的草稿、代理文件与媒体缓存。",
+      "advice": "在剪映「全局设置 → 草稿位置 / 缓存目录」中改到其他盘。",
+      "operation": "在软件设置中修改草稿与缓存位置",
+      "recovery": "可改回"
+    },
+    {
+      "id": "mg_wsl",
+      "category": "migrate",
+      "name": "WSL2 虚拟磁盘",
+      "paths": [],
+      "mode": "manual",
+      "risk": "migrate",
+      "admin": true,
+      "desc": "WSL2 的 ext4.vhdx 虚拟磁盘，只增不减，可达数十 GB。",
+      "advice": "用 wsl --export 导出后 --import 到其他盘，或定期执行 wsl --shutdown 后优化磁盘。",
+      "operation": "通过 wsl 导出导入命令迁移",
+      "recovery": "需重新导入"
+    },
+    {
+      "id": "drive_recycle",
+      "category": "temp",
+      "name": "回收站（当前盘）",
+      "paths": [
+        "%TARGETDRIVE%\\$Recycle.Bin"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "当前所选磁盘的回收站。删除的文件在这里继续占着空间，直到手动清空。",
+      "advice": "可直接清理。清空后文件无法还原，先确认回收站里没有还要用的东西。",
+      "operation": "清空当前盘回收站内的全部内容",
+      "recovery": "不可恢复"
+    },
+    {
+      "id": "drive_dump",
+      "category": "temp",
+      "name": "根目录崩溃转储",
+      "paths": [
+        "%TARGETDRIVE%\\"
+      ],
+      "mode": "delete_files",
+      "patterns": [
+        "*.dmp",
+        "DumpStack.log.tmp",
+        "MEMORY.DMP",
+        "*.mdmp"
+      ],
+      "risk": "safe",
+      "admin": false,
+      "desc": "程序崩溃时写在磁盘根目录的内存转储文件，用于排查故障，日常用不到。",
+      "advice": "可直接清理。如果正在排查某个频繁崩溃的问题，先留一份。",
+      "operation": "删除当前盘根目录下匹配的转储文件",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "drive_config_msi",
+      "category": "temp",
+      "name": "安装残留 Config.Msi",
+      "paths": [
+        "%TARGETDRIVE%\\Config.Msi"
+      ],
+      "mode": "delete_dir",
+      "risk": "safe",
+      "admin": false,
+      "desc": "Windows Installer 安装 / 卸载软件时留下的临时文件夹，正常结束后应自动删除。",
+      "advice": "可直接清理。若某个安装程序正在运行，会删除失败并自动跳过。",
+      "operation": "删除整个目录",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "drive_windows_old",
+      "category": "update",
+      "name": "旧系统残留 Windows.old",
+      "paths": [
+        "%TARGETDRIVE%\\Windows.old"
+      ],
+      "mode": "delete_dir",
+      "risk": "caution",
+      "admin": true,
+      "desc": "升级或重装系统时保留的上一份 Windows，体积通常在 10 GB 以上。",
+      "advice": "确认新系统已用顺手、不需要回退后再删。删掉就无法通过系统恢复回到旧版本。",
+      "operation": "删除整个目录（需要管理员）",
+      "recovery": "不可恢复"
+    },
+    {
+      "id": "drive_win_upgrade",
+      "category": "update",
+      "name": "升级临时目录 $Windows.~BT / ~WS",
+      "paths": [
+        "%TARGETDRIVE%\\$Windows.~BT",
+        "%TARGETDRIVE%\\$Windows.~WS"
+      ],
+      "mode": "delete_dir",
+      "risk": "caution",
+      "admin": true,
+      "desc": "Windows 大版本升级过程中的下载与回滚缓存，升级失败或中断后常残留。",
+      "advice": "系统已升级完成且运行正常即可删除；正在等待重启完成升级时不要动。",
+      "operation": "删除整个目录（需要管理员）",
+      "recovery": "不可恢复"
+    },
+    {
+      "id": "drive_perflogs",
+      "category": "temp",
+      "name": "性能日志 PerfLogs",
+      "paths": [
+        "%TARGETDRIVE%\\PerfLogs"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "Windows 性能监视器生成的日志，一般只有排查性能问题时才需要。",
+      "advice": "可直接清理。",
+      "operation": "清空目录内容",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "doubao_cache",
+      "category": "app",
+      "name": "豆包缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\Doubao"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "豆包（字节跳动 AI 应用）的本地缓存、下载与日志。长期使用可累积到数 GB，是 AppData 里常见的隐形大户。",
+      "advice": "可直接清理。下次启动会自动重建，不影响登录状态。",
+      "operation": "清空目录内全部文件与子文件夹，保留目录本身",
+      "recovery": "无需恢复"
+    },
+    {
+      "id": "qqnt_cache",
+      "category": "app",
+      "name": "QQ 本地缓存（QQNT）",
+      "paths": [
+        "%LOCALAPPDATA%\\Tencent\\QQNT"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": false,
+      "desc": "新版 QQ（QQNT）的运行缓存、下载与日志，长期使用可达数 GB。这里只放缓存，聊天记录存在「文档 \\ Tencent Files」，两者互不影响。",
+      "advice": "清理后需要重新登录 QQ，聊天记录与收发的文件不会丢。不确定就先跳过。",
+      "operation": "清空目录内全部文件与子文件夹，保留目录本身",
+      "recovery": "重新登录即可，缓存自动重建"
+    },
+    {
+      "id": "dingtalk_cache",
+      "category": "app",
+      "name": "钉钉缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\DingTalk"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": false,
+      "desc": "钉钉桌面端的网页缓存、图片与日志，长期使用可累积到数 GB，是 AppData 里常见的隐形大户。",
+      "advice": "清理后需要重新登录钉钉；聊天记录存在云端，重新登录后会再同步下来。",
+      "operation": "清空目录内全部文件与子文件夹，保留目录本身",
+      "recovery": "重新登录即可，缓存自动重建"
+    },
+    {
+      "id": "mg_qq_files",
+      "category": "migrate",
+      "name": "QQ 聊天文件",
+      "paths": [
+        "%USERPROFILE%\\Documents\\Tencent Files"
+      ],
+      "mode": "manual",
+      "risk": "migrate",
+      "admin": false,
+      "desc": "QQ 收发与预览产生的图片、文件、视频缓存，长期不清可达数 GB 甚至十几 GB。",
+      "advice": "不要删除！在 QQ「设置 → 文件管理 → 更改」里把个人文件夹改到空间充足的盘，数据会自动迁移。",
+      "operation": "在客户端内修改存储路径",
+      "recovery": "不适用"
+    },
+    {
+      "id": "wechat_appex_cache",
+      "category": "app",
+      "name": "微信内置浏览器缓存",
+      "paths": [
+        "%APPDATA%\\Tencent\\WeChatAppEx"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "微信内置浏览器与小程序运行时产生的网页缓存。",
+      "advice": "可直接清理，不影响聊天记录。聊天文件请在微信「设置 → 文件管理」里单独处理。",
+      "operation": "清空目录内全部文件与子文件夹，保留目录本身",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "bilibili_cache",
+      "category": "app",
+      "name": "哔哩哔哩客户端缓存",
+      "paths": [
+        "%APPDATA%\\bilibili\\Cache"
+      ],
+      "mode": "clear_contents",
+      "risk": "safe",
+      "admin": false,
+      "desc": "B 站客户端的图片、播放与网页缓存。",
+      "advice": "可放心清理。注意只清 Cache 子目录——下载的视频在别的目录，不会被这条规则删掉。",
+      "operation": "清空 Cache 目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "jianying_cache",
+      "category": "app",
+      "name": "剪映缓存",
+      "paths": [
+        "%LOCALAPPDATA%\\JianyingPro\\Cache"
+      ],
+      "mode": "clear_contents",
+      "risk": "caution",
+      "admin": false,
+      "desc": "剪映（视频剪辑）的预览与素材缓存。",
+      "advice": "清缓存不影响你的草稿与导出工程。若正在剪辑，建议先关闭剪映再清理。",
+      "operation": "清空 Cache 目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "wps_cache",
+      "category": "app",
+      "name": "WPS Office 缓存",
+      "paths": [
+        "%APPDATA%\\Kingsoft"
+      ],
+      "mode": "glob_dirs",
+      "glob_pattern": "*\\cache",
+      "risk": "caution",
+      "admin": false,
+      "desc": "WPS / Kingsoft 套件运行时产生的缓存目录。",
+      "advice": "只清 cache 子目录，不会动你的文档与模板。建议先关闭 WPS。",
+      "operation": "删除匹配的 cache 目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "app_cache_dirs",
+      "category": "app",
+      "name": "应用缓存目录（Local）",
+      "paths": [
+        "%LOCALAPPDATA%"
+      ],
+      "mode": "glob_dirs",
+      "glob_pattern": "*\\Cache",
+      "risk": "caution",
+      "admin": false,
+      "desc": "扫描 %LOCALAPPDATA% 下所有名为 Cache 的子目录，把各软件藏起来的缓存一次性找出来——这是 AppData 里最容易被忽略、也最容易攒到几个 GB 的空间大户。",
+      "advice": "缓存删了会自动重建，但这是跨软件的通配匹配，建议展开看一眼具体是哪个软件再决定。",
+      "operation": "删除匹配的 Cache 目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "app_cache_dirs_roaming",
+      "category": "app",
+      "name": "应用缓存目录（Roaming）",
+      "paths": [
+        "%APPDATA%"
+      ],
+      "mode": "glob_dirs",
+      "glob_pattern": "*\\Cache",
+      "risk": "caution",
+      "admin": false,
+      "desc": "扫描 %APPDATA%（Roaming）下所有名为 Cache 的子目录。",
+      "advice": "同上，建议展开确认具体软件后再清理。",
+      "operation": "删除匹配的 Cache 目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "app_codecache_dirs",
+      "category": "app",
+      "name": "应用脚本缓存（Code Cache）",
+      "paths": [
+        "%LOCALAPPDATA%"
+      ],
+      "mode": "glob_dirs",
+      "glob_pattern": "*\\Code Cache",
+      "risk": "safe",
+      "admin": false,
+      "desc": "Electron / Chromium 系桌面应用（各类客户端）的脚本缓存目录。",
+      "advice": "纯缓存，可放心清理，下次启动重建。",
+      "operation": "删除匹配的 Code Cache 目录内容",
+      "recovery": "自动重建"
+    },
+    {
+      "id": "app_gpucache_dirs",
+      "category": "app",
+      "name": "应用 GPU 缓存",
+      "paths": [
+        "%LOCALAPPDATA%"
+      ],
+      "mode": "glob_dirs",
+      "glob_pattern": "*\\GPUCache",
+      "risk": "safe",
+      "admin": false,
+      "desc": "应用的图形渲染缓存。",
+      "advice": "纯缓存，可放心清理。",
+      "operation": "删除匹配的 GPUCache 目录内容",
+      "recovery": "自动重建"
+    }
+  ]
+}

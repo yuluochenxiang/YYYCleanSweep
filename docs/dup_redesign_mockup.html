@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>YYYCleanSweep 文件去重页 · 筛选UI 重设计方案（拟 v3.14）</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --line:#e3e6ea; --text:#2b2f36;
+    --muted:#8a909a; --accent:#3b6fd4;
+    --c-del:#e03131;        /* 待删除 */
+    --c-keep:#2f9e44;       /* 去重保一规则保留 = 绿 */
+    --c-dir:#1c7ed6;        /* 优先保留目录 = 蓝 */
+    --c-type:#d99a1c;       /* 筛选类型保留 = 金 */
+    --c-manual:#7fd1a0;     /* 用户手动取消 = 浅绿 */
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif;
+    line-height:1.6;padding:24px}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:16px 18px;margin-bottom:18px}
+  .card h2{font-size:15px;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+  .tag{font-size:11px;background:#eef1f6;color:var(--muted);border-radius:4px;
+    padding:1px 6px;font-weight:400}
+  /* 顶部操作栏 */
+  .bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:#fff;border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .bar .lbl{color:var(--muted);font-size:13px}
+  .pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);
+    border-radius:6px;padding:4px 10px;font-size:13px;background:#fff;cursor:pointer}
+  .pill .dot{width:9px;height:9px;border-radius:50%}
+  .pill .caret{color:var(--muted);font-size:11px}
+  .pill.a{border-color:var(--c-type)} .pill.a .dot{background:var(--c-type)}
+  .pill.b{border-color:var(--c-dir)}  .pill.b .dot{background:var(--c-dir)}
+  .pill.c{border-color:var(--c-keep)} .pill.c .dot{background:var(--c-keep)}
+  .btn{background:var(--accent);color:#fff;border:none;border-radius:6px;
+    padding:6px 14px;font-size:13px}
+  .seg{display:flex;gap:8px;align-items:center}
+  /* 展开面板 */
+  .panel{border:1px solid var(--line);border-left-width:4px;border-radius:8px;
+    padding:12px 14px;margin-top:12px;background:#fcfcfd}
+  .panel.a{border-left-color:var(--c-type)}
+  .panel.b{border-left-color:var(--c-dir)}
+  .panel.c{border-left-color:var(--c-keep)}
+  .panel h3{margin:0 0 8px;font-size:14px}
+  .chk{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0}
+  .chk input{width:15px;height:15px}
+  .note{color:var(--muted);font-size:12px;margin-top:8px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  .mini{border:1px solid var(--line);background:#fff;border-radius:5px;
+    padding:3px 9px;font-size:12px;cursor:pointer}
+  select{border:1px solid var(--line);border-radius:5px;padding:4px 8px;font-size:13px}
+  /* 结果树 */
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  th,td{border:1px solid var(--line);padding:6px 10px;text-align:left}
+  th{background:#f0f2f5;color:var(--muted);font-weight:600}
+  .st{font-weight:600}
+  .d-del{color:var(--c-del)} .d-keep{color:var(--c-keep)}
+  .d-dir{color:var(--c-dir)} .d-type{color:var(--c-type)} .d-manual{color:var(--c-manual)}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px}
+  .lg{display:flex;align-items:center;gap:7px;font-size:13px}
+  .lg .sw{width:14px;height:14px;border-radius:3px}
+  /* 改名表 */
+  table.map th{background:#eef1f6}
+  .ok{color:var(--c-keep)} .todo{color:var(--c-del);font-weight:600}
+</style>
+</head>
+<body>
+<h1>文件去重页 · 筛选 UI 重设计方案</h1>
+<div class="sub">拟纳入 v3.14　|　本图为方案示意，待你确认后再改代码</div>
+
+<!-- 1. 顶部操作栏 -->
+<div class="card">
+  <h2>① 顶部操作栏（新）<span class="tag">改动项 2 / 4</span></h2>
+  <div class="bar">
+    <span class="lbl">目录 A</span><span class="seg">[ 浏览 ]</span>
+    <span class="lbl">目录 B</span><span class="seg">[ 浏览 ]</span>
+    <span class="lbl">大于</span><span class="seg">[ 0 MB ]</span>
+    <span class="lbl">判定方式</span><span class="seg">[ 内容一致 ]</span>
+    <span class="lbl" style="font-weight:600">去重保一筛选规则：</span>
+    <span class="pill a"><span class="dot"></span>【A类型】<span class="caret">▾</span></span>
+    <span class="pill b"><span class="dot"></span>【B目录】<span class="caret">▾</span></span>
+    <span class="pill c"><span class="dot"></span>【C其它】<span class="caret">▾</span></span>
+    <button class="btn">开始查找</button>
+  </div>
+  <div class="note">原「保留规则」组合框 + 「保留类型」按钮被合并为一个「去重保一筛选规则：」标题，后面挂三个可展开入口（A/B/C），各带颜色点。</div>
+</div>
+
+<!-- 2. 三个展开面板 -->
+<div class="card">
+  <h2>② 三个可展开子界面（展开态示意）<span class="tag">改动项 3 / 4 / 6</span></h2>
+
+  <div class="panel a">
+    <h3><span style="color:var(--c-type)">●</span> 【A类型】→ 参与去重类型</h3>
+    <div class="chk"><input type="checkbox" checked> <span>.dll　(5)</span></div>
+    <div class="chk"><input type="checkbox" checked> <span>.json　(3)</span></div>
+    <div class="chk"><input type="checkbox" checked> <span>.png　(2)</span></div>
+    <div class="note">未勾选的类型整类保留、绝不删除（适合游戏共享 dll、项目共享 json/jsb）。父入口【A类型】恒显金色。</div>
+  </div>
+
+  <div class="panel b">
+    <h3><span style="color:var(--c-dir)">●</span> 【B目录】→ 优先保留目录</h3>
+    <div class="chk">▸ D:\Games\Common\libs</div>
+    <div class="chk">▸ E:\Work\ProjectX\deps</div>
+    <div class="row">
+      <span class="mini">当前目录</span><span class="mini">选择…</span><span class="mini">移除</span>
+    </div>
+    <div class="note">组里只要有文件落在这里就一定保留。父入口【B目录】恒显蓝色。</div>
+  </div>
+
+  <div class="panel c">
+    <h3><span style="color:var(--c-keep)">●</span> 【C其它】→ 按时间/路径筛选</h3>
+    <div>每组保留：
+      <select>
+        <option>修改时间最早</option>
+        <option>修改时间最晚</option>
+        <option>路径最短</option>
+        <option>内容最早创建</option>
+      </select>
+    </div>
+    <div class="note">优先目录命中后，其余再按此规则挑一个保留（即「去重保一」规则）。父入口【C其它】恒显绿色。</div>
+  </div>
+</div>
+
+<!-- 3. 结果树配色 -->
+<div class="card">
+  <h2>③ 结果树配色方案<span class="tag">改动项 5</span></h2>
+  <table>
+    <thead><tr><th>文件名</th><th>大小</th><th>创建</th><th>修改</th><th>处置</th></tr></thead>
+    <tbody>
+      <tr><td>C:\a\cfg.dll</td><td>1.0 MB</td><td>…</td><td>…</td><td class="st d-keep">保留（保一规则）</td></tr>
+      <tr><td>C:\b\cfg.dll</td><td>1.0 MB</td><td>…</td><td>…</td><td class="st d-del">待删除</td></tr>
+      <tr><td>D:\Games\Common\libs\eng.dll</td><td>2.0 MB</td><td>…</td><td>…</td><td class="st d-dir">优先目录</td></tr>
+      <tr><td>E:\deps\shared.json</td><td>4 KB</td><td>…</td><td>…</td><td class="st d-type">类型保留</td></tr>
+      <tr><td>C:\c\cfg.dll</td><td>1.0 MB</td><td>…</td><td>…</td><td class="st d-manual">手动保留</td></tr>
+    </tbody>
+  </table>
+  <div class="legend">
+    <div class="lg"><span class="sw" style="background:var(--c-del)"></span>待删除（默认文字，红字提示）</div>
+    <div class="lg"><span class="sw" style="background:var(--c-keep)"></span>去重保一规则保留 = 绿</div>
+    <div class="lg"><span class="sw" style="background:var(--c-dir)"></span>优先保留目录 = 蓝</div>
+    <div class="lg"><span class="sw" style="background:var(--c-type)"></span>筛选类型保留 = 金</div>
+    <div class="lg"><span class="sw" style="background:var(--c-manual)"></span>用户手动取消 = 浅绿</div>
+  </div>
+  <div class="note">优先级（同一条命中多个时取先者）：待删除 &lt; 优先目录(蓝) &lt; 类型保留(金) &lt; 保一规则(绿) &lt; 手动取消(浅绿)。父入口 A/B/C 用各自颜色点标识。</div>
+</div>
+
+<!-- 4. 改名与实施清单 -->
+<div class="card">
+  <h2>④ 改名对照 & 实施清单（待确认）</h2>
+  <table class="map">
+    <thead><tr><th>原文案</th><th>新文案</th><th>对应入口</th></tr></thead>
+    <tbody>
+      <tr><td>保留规则</td><td>去重保一筛选规则</td><td>容器标题（顶部）</td></tr>
+      <tr><td>保留类型</td><td>参与去重类型</td><td>【A类型】展开内容</td></tr>
+      <tr><td>优先保留目录</td><td>（保持不变，置于【B目录】内）</td><td>【B目录】展开内容</td></tr>
+      <tr><td>按时间路径等规则</td><td>（置于【C其它】内）</td><td>【C其它】展开内容</td></tr>
+    </tbody>
+  </table>
+  <div class="note todo">实施前需你确认：① A/B/C 三入口用「点击展开内联面板」还是「可折叠分组框」；② 颜色优先级顺序是否如上；③ 浅绿（手动）与绿（保一）是否都要保留，还是手动也用绿。确认后我一次性改 dup_page.py 并出 v3.14。</div>
+</div>
+
+</body>
+</html>

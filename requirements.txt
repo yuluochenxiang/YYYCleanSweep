@@ -1,0 +1,12 @@
+# YYYCleanSweep 依赖清单
+#
+# 运行时只需要 PySide6 一个，其余全是 Python 标准库（离线运行，不联网）。
+# 装法（走腾讯云镜像，比官方源快很多）：
+#   pip install -r requirements.txt -i https://mirrors.cloud.tencent.com/pypi/simple
+
+# ---- 运行必需 ----
+PySide6==6.12.0
+
+# ---- 仅在你要把源码打包成 exe 时才需要 ----
+# Send2Trash==2.1.0          # 删除走回收站（当前版本未直接引用，留着备用）
+# pyinstaller==6.22.3        # 打包用；运行源码不需要，装了也不会被 import
