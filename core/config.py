@@ -38,6 +38,8 @@ DEFAULTS = {
     "dup_rule": 0,                 # 保留规则下标
     "dup_mode": "recycle",         # recycle / backup / permanent
     "dup_keep_dirs": [],           # 优先保留目录
+    # ---- 空间快照（目录分析页「空间变化」）
+    "snap_keep": 30,               # 每个扫描根保留多少批快照
 }
 
 

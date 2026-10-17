@@ -1189,6 +1189,40 @@ class MainWindow(QMainWindow):
         cbl2.addWidget(self.lb_thumb_path)
         lay.addWidget(cb2)
 
+        # ---- 空间快照（B）：留了几次、占多少，以及清掉重来
+        cb3 = QFrame()
+        cb3.setObjectName("card")
+        cbl3 = QVBoxLayout(cb3)
+        cbl3.setContentsMargins(14, 10, 14, 10)
+        cbl3.setSpacing(6)
+        r3 = QHBoxLayout()
+        r3.setSpacing(10)
+        r3.addWidget(QLabel("空间快照"))
+        self.lb_snap_cache = QLabel("")
+        self.lb_snap_cache.setObjectName("hint")
+        r3.addWidget(self.lb_snap_cache)
+        r3.addStretch(1)
+        r3.addWidget(QLabel("保留"))
+        self.sp_snap_keep = QSpinBox()
+        self.sp_snap_keep.setRange(5, 200)
+        self.sp_snap_keep.setSingleStep(5)
+        self.sp_snap_keep.setSuffix(" 次")
+        self.sp_snap_keep.setMinimumWidth(110)
+        # 先按配置填值再接信号，免得启动时就把配置写一遍
+        self.sp_snap_keep.setValue(int(self.cfg.get("snap_keep", 30) or 30))
+        scan_cache.set_snapshot_keep(int(self.sp_snap_keep.value()))
+        self.sp_snap_keep.valueChanged.connect(self._on_snap_keep_changed)
+        r3.addWidget(self.sp_snap_keep)
+        b_clr_snap = QPushButton("清除快照")
+        b_clr_snap.setObjectName("danger")
+        b_clr_snap.clicked.connect(self._clear_snapshots)
+        r3.addWidget(b_clr_snap)
+        cbl3.addLayout(r3)
+        self.lb_snap_path = PathLabel("")
+        self.lb_snap_path.setObjectName("hint")
+        cbl3.addWidget(self.lb_snap_path)
+        lay.addWidget(cb3)
+
         gb = QGroupBox("历史操作（可一键复用当时的选择）")
         gl = QVBoxLayout(gb)
         gl.setSpacing(10)
@@ -1291,10 +1325,40 @@ class MainWindow(QMainWindow):
             n, sz = 0, 0
         self.lb_cache.setText(self._cache_usage_html(n, sz, "个目录"))
         self._set_cache_path(self.lb_cache_path, scan_cache.db_file())
+        # 两张表共用一个库文件，一起刷新，用户清完缓存也能立刻看到快照还在
+        self._refresh_snap_cache_label()
 
     def _clear_cache(self):
         scan_cache.clear()
         self._refresh_cache_label()
+
+    # ---------------------------------------------------------- 空间快照
+    def _refresh_snap_cache_label(self):
+        """快照计数 + 库文件路径。两个数字分别用强调色，和上面两张卡片观感一致。"""
+        try:
+            b, n = scan_cache.snapshot_stats()
+        except Exception:
+            b, n = 0, 0
+        p = self.pal
+        self.lb_snap_cache.setText(
+            f"已留 <b style='color:{p['accent']}'>{b}</b> 次 · "
+            f"<b style='color:{p['accent']}'>{n}</b> 条")
+        # 快照与扫描缓存共用同一个 db 文件，路径照给，方便用户自己核大小
+        self._set_cache_path(self.lb_snap_path, scan_cache.db_file())
+
+    def _clear_snapshots(self):
+        try:
+            scan_cache.clear_snapshots()
+        except Exception:
+            pass
+        self._refresh_snap_cache_label()
+
+    def _on_snap_keep_changed(self, v):
+        self.cfg.set("snap_keep", int(v))
+        try:
+            scan_cache.set_snapshot_keep(int(v))
+        except Exception:
+            pass
 
     # ---------------------------------------------------------- 缩略图缓存
     def _refresh_thumb_cache_label(self):

@@ -31,6 +31,12 @@ SCHEMA_VERSION = 1
 # 停在首次扫描的数字上，用户会觉得「重新扫描结果不变」。加 TTL 兜底：再久也会重扫。
 TTL_SECONDS = 7 * 24 * 3600
 
+# ---- 空间快照：每次完整扫描留一份「每个目录多大」，用来对比「谁涨了」。
+# 与 dir_cache 同库、另开一张表；**故意不加 TTL**——快照越老越有价值。
+# 滚动保留：同一个扫描根只留最近这么多批，否则 db 会随时间无限膨胀。
+MAX_SNAPSHOTS = 30
+_snap_keep = MAX_SNAPSHOTS
+
 
 def _db_path():
     global _DB_PATH
@@ -186,3 +192,162 @@ def stats():
     except OSError:
         sz = 0
     return n, sz
+
+
+# ------------------------------------------------------------------ 空间快照
+# 与 dir_cache 同库、独立一张表。用来回答「相比上次，哪些目录变大了」。
+# 设计要点：
+#   1) 不加 TTL——快照的价值恰恰在于它足够旧，过期清理会让这个功能失效；
+#   2) 按 (root, ts) 分批改量淘汰，避免 db 随时间无限膨胀；
+#   3) 任何异常都静默降级：快照坏了不能影响扫描本身。
+def _ensure_snapshot_schema(conn):
+    conn.execute(
+        """CREATE TABLE IF NOT EXISTS snapshot (
+            root   TEXT NOT NULL,
+            ts     REAL NOT NULL,
+            path   TEXT NOT NULL,
+            size   INTEGER NOT NULL,
+            fcount INTEGER NOT NULL,
+            PRIMARY KEY (root, ts, path)
+        )"""
+    )
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_snap_root_ts ON snapshot(root, ts)")
+    conn.commit()
+
+
+def set_snapshot_keep(n):
+    """设置每个扫描根保留多少批快照（立即生效，下次写入时淘汰）。"""
+    global _snap_keep
+    try:
+        n = int(n)
+    except (TypeError, ValueError):
+        return
+    _snap_keep = max(1, min(500, n))
+
+
+def snapshot_batches(root, limit=None):
+    """这个扫描根下已有的批次时间戳（新的在前）。库不可用时返回 []。"""
+    key = _norm_key(root)
+    with _lock:
+        conn = _connect()
+        if conn is None:
+            return []
+        rows = []
+        try:
+            _ensure_snapshot_schema(conn)
+            rows = conn.execute(
+                "SELECT DISTINCT ts FROM snapshot WHERE root=? ORDER BY ts DESC",
+                (key,)).fetchall()
+        except sqlite3.Error:
+            rows = []
+        finally:
+            conn.close()
+    ts = [r[0] for r in rows]
+    return ts[:limit] if limit else ts
+
+
+def put_snapshot(root, rows):
+    """写一批快照，返回本次批次的时间戳。
+
+    rows : [(path, size, count)]，一条一个目录。
+    写完按保留份数滚动淘汰旧批次——这是本表唯一可能失控的地方。
+    """
+    key = _norm_key(root)
+    ts = time.time()
+    data = [(key, ts, _norm_key(p), int(s), int(c)) for p, s, c in rows]
+    with _lock:
+        conn = _connect()
+        if conn is None:
+            return ts
+        try:
+            _ensure_snapshot_schema(conn)
+            conn.executemany(
+                "INSERT OR REPLACE INTO snapshot (root, ts, path, size, fcount) "
+                "VALUES (?,?,?,?,?)", data)
+            stale = conn.execute(
+                "SELECT DISTINCT ts FROM snapshot WHERE root=? "
+                "ORDER BY ts DESC LIMIT -1 OFFSET ?", (key, _snap_keep)).fetchall()
+            for (old,) in stale:
+                conn.execute(
+                    "DELETE FROM snapshot WHERE root=? AND ts=?", (key, old))
+            conn.commit()
+        except sqlite3.Error:
+            pass
+        finally:
+            conn.close()
+    return ts
+
+
+def diff_snapshots(root, ts_old, ts_new, limit=200):
+    """对比两个批次，返回 [(path, old_size, new_size, delta)]，按涨幅降序。
+
+    只报「两次都在」的路径：新增和删除的目录不算增长。
+    大小没变的直接跳过，免得用户看一屏 0。
+
+    ⚠️ **扫描根自身必须排除**——根的占用是所有子目录之和，把它算进来的话
+    「总共增加了多少」会被重复叠加一次（根 +200 里本来就含子目录的 +200），
+    界面上还会冒出一个等于整个范围的假目录，点进去毫无意义。
+    """
+    key = _norm_key(root)
+    old_d, new_d = {}, {}
+    with _lock:
+        conn = _connect()
+        if conn is None:
+            return []
+        try:
+            _ensure_snapshot_schema(conn)
+            old_d = dict(conn.execute(
+                "SELECT path, size FROM snapshot WHERE root=? AND ts=?",
+                (key, ts_old)).fetchall())
+            new_d = dict(conn.execute(
+                "SELECT path, size FROM snapshot WHERE root=? AND ts=?",
+                (key, ts_new)).fetchall())
+        except sqlite3.Error:
+            return []
+        finally:
+            conn.close()
+    out = []
+    for p, ns in new_d.items():
+        if p == key:
+            continue
+        old_sz = old_d.get(p)
+        if old_sz is None or old_sz == ns:
+            continue
+        out.append((p, old_sz, ns, ns - old_sz))
+    out.sort(key=lambda x: x[3], reverse=True)
+    return out[:limit]
+
+
+def snapshot_stats():
+    """返回 (批次数, 行数)。批次数按 (root, ts) 去重计。"""
+    with _lock:
+        conn = _connect()
+        if conn is None:
+            return 0, 0
+        try:
+            _ensure_snapshot_schema(conn)
+            b = conn.execute(
+                "SELECT COUNT(*) FROM (SELECT DISTINCT root, ts FROM snapshot)"
+            ).fetchone()[0]
+            n = conn.execute("SELECT COUNT(*) FROM snapshot").fetchone()[0]
+        except sqlite3.Error:
+            b, n = 0, 0
+        finally:
+            conn.close()
+    return b, n
+
+
+def clear_snapshots():
+    """清空全部空间快照。只删 snapshot 表，绝不碰 dir_cache。"""
+    with _lock:
+        conn = _connect()
+        if conn is None:
+            return
+        try:
+            conn.execute("DROP TABLE IF EXISTS snapshot")
+            conn.commit()
+        except sqlite3.Error:
+            pass
+        finally:
+            conn.close()

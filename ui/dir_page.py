@@ -22,6 +22,7 @@ from PySide6.QtWidgets import (
 )
 
 from core.dirstat import DirTree
+from core import cache as scan_cache
 from core.knowledge import knowledge, filetypes, KIND_LABEL, RISK_LABEL
 from core.marks import MarkStore, MARK_KEEP, MARK_JUNK, MARK_LABEL
 from core.sizefmt import fmt_bytes, fmt_pct, pct_of, parse_pct
@@ -105,6 +106,9 @@ class DirScanPage(QWidget):
         self.min_mb = 0
         self.hide_marked = False
         self._cache = {}
+        # 空间快照：本次 / 上一次的批次时间戳，供顶部「空间变化」卡片对比
+        self._snap_prev = None
+        self._snap_cur = None
         if self.cfg:
             self.sort_key = SORT_KEYS[self.cfg.get("sort_dir", 0)] \
                 if self.cfg.get("sort_dir", 0) < len(SORT_KEYS) else "size"
@@ -189,6 +193,29 @@ class DirScanPage(QWidget):
         lb_hover.setObjectName("hint")
         bl2.addWidget(lb_hover)
         lay.addWidget(bar2)
+
+        # ---- 空间变化对比卡片（B）：直接回答「是谁涨上去的」
+        self.box_snap = QFrame()
+        self.box_snap.setObjectName("card")
+        snl = QHBoxLayout(self.box_snap)
+        snl.setContentsMargins(14, 9, 14, 9)
+        snl.setSpacing(10)
+        lb_sn = QLabel("空间变化")
+        lb_sn.setObjectName("muted")
+        snl.addWidget(lb_sn)
+        self.lb_snap = QLabel("尚未对比")
+        self.lb_snap.setTextInteractionFlags(Qt.TextBrowserInteraction)
+        snl.addWidget(self.lb_snap)
+        snl.addSpacing(6)
+        # 增长最快的几个做成可点的按钮：点一下右侧详情就跳过去
+        self.w_snap_top = QWidget()
+        self.snap_top_lay = QHBoxLayout(self.w_snap_top)
+        self.snap_top_lay.setContentsMargins(0, 0, 0, 0)
+        self.snap_top_lay.setSpacing(6)
+        snl.addWidget(self.w_snap_top)
+        snl.addStretch(1)
+        lay.addWidget(self.box_snap)
+        self.box_snap.hide()          # 有扫描结果才露面，避免开着图上空白卡片
 
         split = QSplitter(Qt.Horizontal)
 
@@ -416,6 +443,10 @@ class DirScanPage(QWidget):
         self.btn_up.setEnabled(False)
         # 新结果还没出来，右侧详情留着上一次的目录最容易让人看错，先恢复初始态
         self._clear_detail()
+        # 旧的空间变化同样失效，先收起来，等这次扫完再刷新
+        self.box_snap.hide()
+        self._snap_prev = None
+        self._snap_cur = None
         depth = self.cb_depth.currentIndex() + 2
         if self.cfg:
             self.cfg.set("dir_depth", self.cb_depth.currentIndex())
@@ -446,6 +477,85 @@ class DirScanPage(QWidget):
         QTimer.singleShot(1600, self.banner.hide)
         self._rebuild()
         self._sync_treemap()
+        # 中止的扫描不留快照：残缺的树偏小，拿它当基准下次会虚报一堆「暴涨」
+        if not tree.stopped:
+            self._save_snapshot(tree)
+        self._refresh_snap_card()
+
+    # ---------------- 空间快照（B）----------------
+    def _save_snapshot(self, tree):
+        """把这次扫描的每个目录占用留一份，并记住「上一次」的批次时间戳。
+
+        注意顺序：先记下旧的批次，再写入新的——反过来的话 prev 会等于自己，
+        对比结果永远全是 0。
+        """
+        prev_list = scan_cache.snapshot_batches(tree.root, limit=1)
+        prev = prev_list[0] if prev_list else None
+        rows = [(nd.path, nd.agg_size, nd.agg_count)
+                for nd in tree.nodes.values() if nd.agg_size > 0]
+        cur = None
+        if rows:
+            scan_cache.set_snapshot_keep(
+                int(self.cfg.get("snap_keep", 30) or 30) if self.cfg else 30)
+            cur = scan_cache.put_snapshot(tree.root, rows)
+        self._snap_prev = prev
+        self._snap_cur = cur
+
+    def _clear_snap_top(self):
+        """清掉「增长最快」那几个按钮，防止多次扫描叠加堆积。"""
+        lay = self.snap_top_lay
+        while lay.count():
+            it = lay.takeAt(0)
+            wd = it.widget()
+            if wd is not None:
+                wd.setParent(None)
+                wd.deleteLater()
+
+    def _refresh_snap_card(self):
+        """刷新顶部「空间变化」卡片。"""
+        self._clear_snap_top()
+        if not self.tree:
+            self.box_snap.hide()
+            return
+        prev = self._snap_prev
+        cur = self._snap_cur
+        if not prev or not cur:
+            self.lb_snap.setText(
+                "已记录本次扫描结果，<b>下次再扫一次</b>就能看出哪些目录在变大。")
+            self.box_snap.show()
+            return
+        rows = scan_cache.diff_snapshots(self.tree.root, prev, cur, limit=200)
+        grown = [r for r in rows if r[3] > 0]
+        up = sum(r[3] for r in grown)
+        down = -sum(r[3] for r in rows if r[3] < 0)
+        dt = time.strftime("%m月%d日", time.localtime(prev))
+        # 间隔文案：同一天连扫两次时若写死「1 天前」很荒唐，按时长自动降档
+        gap = max(0.0, cur - prev)
+        if gap < 3600:
+            ago = f"{max(1, int(round(gap / 60.0)))} 分钟前"
+        elif gap < 86400:
+            ago = f"{max(1, int(round(gap / 3600.0)))} 小时前"
+        else:
+            ago = f"{max(1, int(round(gap / 86400.0)))} 天前"
+        if up <= 0:
+            self.lb_snap.setText(
+                f"相比 {dt}（{ago}），<b>没有变大的目录</b>"
+                + (f"，反倒少了 {fmt(down)}。" if down > 0 else "。"))
+            self.box_snap.show()
+            return
+        txt = (f"相比 {dt}（{ago}），<b>{short_path(self.tree.root)}</b> "
+               f"增加 <b>{fmt(up)}</b>")
+        if down > 0:
+            txt += f"，同时减少 {fmt(down)}"
+        self.lb_snap.setText(txt)
+        for p, _osz, _nsz, delta in grown[:3]:
+            btn = QPushButton(
+                f"{os.path.basename(p.rstrip('\\/')) or p} +{fmt(delta)}")
+            btn.setObjectName("mini")
+            btn.setToolTip(p)
+            btn.clicked.connect(lambda _c=False, p=p: self._show_detail(p))
+            self.snap_top_lay.addWidget(btn)
+        self.box_snap.show()
 
     # 表头列 -> 排序方式（点表头时让上面的「排序」下拉也跟着变，避免两处打架）
     COL_SORT = {0: "name", 1: "size", 2: "size", 3: "count"}
