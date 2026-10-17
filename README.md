@@ -1,4 +1,4 @@
-# YYYCleanSweep 磁盘清理工具 离线版 `v3.34`
+# YYYCleanSweep 磁盘清理工具 离线版 `v3.35`
 
 Windows 离线磁盘清理与空间分析工具。单文件/文件夹两种形态，**全程无网络请求**，
   
@@ -21,6 +21,11 @@ Python 3.13 + PySide6 写成，规则和目录知识库全部是可编辑的 JSO
 
 > 两种发布形态的区别、如何取舍，见 [五、运行](#五运行)；不想先从源码跑的话，
 > 直接到 [Releases](https://github.com/yuluochenxiang/YYYCleanSweep/releases/latest) 下载即可。
+
+### 最近更新（v3.35）
+
+- **加了命令行模式，可以挂计划任务了**：带参数运行就不开窗口，直接扫一次并输出结果——`--scan` 打印表格，`--json` / `--html` 写报告，`--min-size` / `--top` 控粒度，`--quiet` 只留汇总。**不带任何参数双击还是正常开界面**，不会闪黑框。退出码分 4 种（0 成功 / 2 参数错误 / 3 扫描失败 / 130 已中断），计划任务能据此判断要不要发告警。这条分支**完全不加载界面库**：先看参数、再决定要不要起 Qt，所以在老机器上定时跑不会多拖几十 MB。
+- 一个坑值得写下来：exe 是 `console=False` 打包的（否则双击会闪黑框），这种进程 `sys.stdout` 是 `None`，`print()` 不报错但**什么都不输出**。所以命令行分支会先给自己挂上控制台（借用父窗口，没有就新开一个），并把标准流重新绑到新句柄上——中文按 UTF-8 输出，不乱码。
 
 ### 最近更新（v3.34）
 
@@ -356,6 +361,41 @@ YYYCleanSweep.exe        （46 MB，双击即用）
 > **启动可能要几十秒**。本机日常使用请用文件夹版；
 >   
 > 单文件版适合拷到没有 Python 环境的机器上应急。
+
+### 命令行扫描（无界面，可挂计划任务）
+
+同一个 exe，带上参数就不开窗口，直接跑一次扫描并输出结果：
+
+```bat
+YYYCleanSweep.exe --version
+YYYCleanSweep.exe --scan
+YYYCleanSweep.exe --scan --target D: --min-size 50MB --top 0
+YYYCleanSweep.exe --scan --json C:\reports\clean.json
+YYYCleanSweep.exe --scan --html C:\reports\clean.html --quiet
+```
+
+| 参数 | 说明 |
+| --- | --- |
+| `--scan` | 执行一次扫描（不带任何参数则正常打开界面） |
+| `--target` | 扫描盘，形如 `C:` / `D:`，默认系统盘 |
+| `--min-size` | 只报告大于该体积的项，如 `50MB` / `1GB` |
+| `--top` | 控制台只显示前 N 条，`0` 表示全部（默认 20） |
+| `--json` / `--html` | 结果写成 JSON（UTF-8）或自包含网页报告 |
+| `--quiet` | 不打印逐条进度，只出汇总 |
+| `--version` | 打印版本号后退出 |
+
+退出码：`0` 成功 / `2` 参数错误 / `3` 扫描失败 / `130` 已中断。
+计划任务里可以据此判断要不要发告警：
+
+```bat
+"E:\work\WB_\YYYCleanSweep\app\YYYCleanSweepFast\YYYCleanSweepFast.exe" ^
+  --scan --json "E:\reports\%date:~0,4%%date:~5,2%%date:~8,2%.json" --quiet
+```
+
+> 定时任务**请用文件夹版（Fast）**：单文件版每次启动都要往 `%TEMP%` 解压约 113 MB。
+>   
+> 命令行分支**完全不加载界面库**（判断参数在前、`import PySide6` 在后），
+> 所以在老机器上跑计划任务不会额外拖几十 MB 的 Qt。
 
 ### 从源码运行（换台电脑也行）
 

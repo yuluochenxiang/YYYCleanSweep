@@ -153,8 +153,12 @@ def build_parser():
 
 
 def read_version():
-    """读版本号。刻意不去 import core.version，
-    那个模块带着给界面用的长文案，命令行用不着它。"""
+    """读版本号。
+
+    先直接读 core/version.py 的源码行：那个模块还带着给界面用的长文案，
+    命令行用不着它。但打包成 exe 之后源码文件不一定在（PyInstaller 只留 .pyc），
+    读不到就退回 import —— 否则 `--version` 会一本正经地打印 "0.0"。
+    """
     p = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                      "core", "version.py")
     try:
@@ -165,7 +169,11 @@ def read_version():
                     return s.split("=", 1)[1].strip().strip('"').strip("'")
     except OSError:
         pass
-    return "0.0"
+    try:
+        from core.version import APP_VERSION
+        return APP_VERSION
+    except Exception:                                           # noqa: BLE001
+        return "0.0"
 
 
 # ------------------------------------------------------------------ 扫描
