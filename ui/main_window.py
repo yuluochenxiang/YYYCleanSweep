@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTreeWidget, QTreeWidgetItem, QListWidget, QListWidgetItem, QFrame,
     QTabWidget, QTextBrowser, QProgressBar, QHeaderView, QMessageBox,
-    QDialog, QRadioButton, QFileDialog, QLineEdit, QGroupBox,
+    QDialog, QRadioButton, QFileDialog, QLineEdit, QGroupBox, QInputDialog,
     QAbstractItemView, QSplitter, QTableWidget, QTableWidgetItem, QCheckBox,
     QApplication, QStyle, QStyledItemDelegate, QComboBox, QSpinBox, QSlider,
     QGridLayout, QMenu, QLayout, QSizePolicy,
@@ -829,12 +829,16 @@ class MainWindow(QMainWindow):
         b_reco.setObjectName("ok")
         b_last = QPushButton("复用上次选择")
         b_none = QPushButton("全不选")
+        b_script = QPushButton("导出清理脚本")
+        b_script.setToolTip(
+            "把当前勾选的项目导出成一个 .bat，可以拿去管理员运行或放进计划任务")
+        b_script.clicked.connect(self._export_script)
         self.btn_expand = QPushButton("展开子目录")
         self.btn_expand.setObjectName("toggle")
         self.btn_expand.setCheckable(True)
         self.btn_expand.setToolTip("一条规则对应多个目录时，展开后能只勾选其中一部分")
         self.btn_expand.toggled.connect(self._toggle_expand)
-        for b in (b_safe, b_reco, b_last, b_none, self.btn_expand):
+        for b in (b_safe, b_reco, b_last, b_none, b_script, self.btn_expand):
             bl.addWidget(b)
         bl.addSpacing(16)
 
@@ -1855,6 +1859,77 @@ class MainWindow(QMainWindow):
 
     def _has_selection(self):
         return bool(self._selected_plan())
+
+    # ---------------------------------------------------------- 导出清理脚本（D）
+    def _rule_is_checked(self, rid):
+        """这条规则当前是否被勾中（单目录规则存裸 id，多目录存 id|path）。"""
+        if rid in self.checked:
+            return True
+        pref = rid + "|"
+        return any(k.startswith(pref) for k in self.checked)
+
+    def _selected_plan_for_export(self):
+        """[(规则 dict, [路径])] —— 导出脚本专用。
+
+        和 _selected_plan() 的差别：后者要求「必须有要删的路径」，会把
+        command / manual 类规则整个过滤掉。导出时恰恰要把它们列出来
+        （command 写成 REM 注释、manual 只写建议），否则用户勾了 WinSxS
+        却导不出去，等于这个功能在最需要它的场景失效。
+
+        遍历顺序按规则表本身，不按界面可见项——用户勾完再切分类筛选时，
+        被筛掉的项也得照样导出，不能悄悄少几条。
+        """
+        order = {r["id"]: i for i, r in enumerate(self.rules)}
+        rids = []
+        for key in self.checked:
+            rid = key.split("|", 1)[0]
+            if rid not in rids:
+                rids.append(rid)
+        rids.sort(key=lambda x: order.get(x, 10 ** 9))
+        out = []
+        for rid in rids:
+            r = self.by_id.get(rid)
+            if not r or self._rule_protected(r):
+                continue
+            out.append((r, self._checked_paths(r)))
+        return out
+
+    def _export_script(self):
+        """把勾选的项目导出成一个可直接运行的批处理。"""
+        from core import exporter
+        pairs = self._selected_plan_for_export()
+        if not pairs:
+            QMessageBox.information(
+                self, "没有可导出项",
+                "先在左边的清单里勾选要清理的项目，再点导出。")
+            return
+        modes = [exporter.MODE_TITLE[exporter.RECYCLE],
+                 exporter.MODE_TITLE[exporter.PERMANENT]]
+        mode_text, ok = QInputDialog.getItem(
+            self, "导出清理脚本",
+            "脚本用什么方式处理这些条目：", modes, 0, False)
+        if not ok or not mode_text:
+            return
+        mode = (exporter.RECYCLE
+                if mode_text == exporter.MODE_TITLE[exporter.RECYCLE]
+                else exporter.PERMANENT)
+        path, _ = QFileDialog.getSaveFileName(
+            self, "导出清理脚本", "清理脚本.bat", "批处理文件 (*.bat)")
+        if not path:
+            return
+        if not path.lower().endswith(".bat"):
+            path += ".bat"
+        try:
+            exporter.save_bat(pairs, path, mode=mode)
+        except Exception as e:                                  # noqa: BLE001
+            QMessageBox.warning(self, "导出失败", str(e))
+            return
+        if QMessageBox.question(
+                self, "导出完成",
+                f"已导出 {len(pairs)} 个清理项到：\n{path}\n\n"
+                "现在打开文件夹看看？（建议先看一遍内容再运行）",
+                QMessageBox.Yes | QMessageBox.No) == QMessageBox.Yes:
+            self._reveal_file(path, "清理脚本")
 
     def _plan_bytes(self):
         total = 0
