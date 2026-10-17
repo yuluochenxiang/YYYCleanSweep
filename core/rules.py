@@ -19,6 +19,17 @@ RISK_COLOR = {
     "info": "#888780",
 }
 
+# 六种处理方式的中文名。规则编辑器（G 卷）和使用说明都从这里取，
+# 别再在界面里手写一份对照表——v3.27 就因为手写表和真实取值脱节返工过。
+MODE_LABEL = {
+    "clear_contents": "清空目录内容",
+    "delete_files": "删除匹配文件",
+    "delete_dir": "删除整个目录",
+    "glob_dirs": "按通配符删目录",
+    "command": "执行命令",
+    "manual": "仅提示",
+}
+
 
 def _bundled_rules_dir():
     import sys

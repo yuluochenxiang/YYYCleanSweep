@@ -431,6 +431,44 @@ class MainWindow(QMainWindow):
         dlg = AboutDialog(self, self)
         dlg.exec()
 
+    # ---------------------------------------------------------- 规则编辑（G）
+    def _refresh_rule_path(self):
+        """设置页那行「当前生效：路径 共 N 条」。"""
+        if not hasattr(self, "lb_rule_path"):
+            return
+        from core import ruleedit as ruleedit_mod
+        try:
+            p = ruleedit_mod.path_of()
+        except Exception:                                       # noqa: BLE001
+            p = ""
+        self.lb_rule_path.setText(f"当前生效：{p}　共 {len(self.rules)} 条")
+        self.lb_rule_path.setToolTip(
+            f"{p}\n（这个文件在 exe 旁边，可以直接编辑；改完重启或在这里保存即生效。"
+            f"发新版时打包会覆盖它，改过的内容建议用「备份当前」留一份。）")
+
+    def _open_rule_editor(self):
+        from ui.rule_editor import RuleEditorDialog
+        dlg = RuleEditorDialog(self.cfg, self, theme=self.theme)
+        if dlg.exec():
+            self._reload_rules()
+
+    def _reload_rules(self):
+        """规则改完立刻重新加载并重扫，省得让用户重启软件。
+
+        同时把「已勾选」「扫描结果」里属于被删规则的残留清掉 ——
+        不清的话后面 _selected_plan() 会对着不存在的 id 取路径。
+        """
+        self.categories, self.rules = load_rules()
+        self.by_id = {r["id"]: r for r in self.rules}
+        self.checked = {k for k in self.checked
+                        if k.split("|", 1)[0] in self.by_id}
+        self.results = {k: v for k, v in self.results.items()
+                        if k in self.by_id}
+        self._fill_categories()
+        self._refresh_categories()
+        self._refresh_rule_path()
+        self.start_scan(False)
+
     def _build(self):
         root = QWidget()
         outer = QVBoxLayout(root)
@@ -1319,6 +1357,23 @@ class MainWindow(QMainWindow):
             lambda v: self.cfg.set("warn_pct", int(v)))
         self.cb_warn_freq.currentIndexChanged.connect(self._on_warn_freq)
         self._sync_warn_tip()
+
+        # ---- 清理规则（改的是 exe 旁那份可编辑副本，保存前自动备份）
+        cb5 = QFrame()
+        cb5.setObjectName("card")
+        cbl5 = QHBoxLayout(cb5)
+        cbl5.setContentsMargins(14, 10, 14, 10)
+        cbl5.setSpacing(10)
+        cbl5.addWidget(QLabel("清理规则"))
+        self.lb_rule_path = QLabel("")
+        self.lb_rule_path.setObjectName("hint")
+        cbl5.addWidget(self.lb_rule_path, 1)
+        b_edit_rule = QPushButton("编辑规则")
+        b_edit_rule.setToolTip("增删改清理规则，不用手改 JSON")
+        b_edit_rule.clicked.connect(self._open_rule_editor)
+        cbl5.addWidget(b_edit_rule)
+        lay.addWidget(cb5)
+        self._refresh_rule_path()
 
         gb = QGroupBox("历史操作（可一键复用当时的选择）")
         gl = QVBoxLayout(gb)
