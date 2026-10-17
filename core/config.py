@@ -45,6 +45,12 @@ DEFAULTS = {
     "dupdir_min_mb": 50,           # 低于这个体积的目录不参与比对
     "dupdir_overlap": 80,          # 「大部分相同」的顶层名字重合率阈值（%）
     "dupdir_skip": True,           # 跳过 node_modules / venv 等噪音目录
+    # ---- 磁盘空间提醒（只在启动时查一次，不做后台常驻）
+    "warn_enabled": True,          # 关了就完全不查
+    "warn_gb": 5,                  # 可用空间低于这个值（GB）提醒
+    "warn_pct": 3,                 # 或低于这个百分比提醒
+    "warn_freq": "daily",          # daily 每天一次 / always 每次启动
+    "warn_last": "",               # "2026-10-17|C:" —— 当天该盘已提醒过
 }
 
 

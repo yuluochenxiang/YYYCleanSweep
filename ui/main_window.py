@@ -404,6 +404,8 @@ class MainWindow(QMainWindow):
         # 顶部栏高度等首次布局完成后再钉（构造时样式还没套上，量出来不准）
         QTimer.singleShot(0, self._fix_bar_height)
         QTimer.singleShot(150, lambda: self.start_scan(False))
+        # 空间提醒延后一拍：等 self.drive / 调色板都就位，也避免「开屏就是黄条」
+        QTimer.singleShot(400, lambda: self._check_disk_space(False))
 
     def _fix_bar_height(self):
         """把顶部栏的实测高度钉成下限，避免切换页签时整条栏上下跳。
@@ -492,6 +494,28 @@ class MainWindow(QMainWindow):
         self.btn_about.clicked.connect(self._open_about)
         bl.addWidget(self.btn_about)
         outer.addWidget(bar)
+
+        # ---- 空间不足提醒：非模态卡片，来了不打断任何操作。
+        # （刻意不用 QMessageBox：构造末尾会自动起扫描，模态框会把界面按住；
+        #   而且离屏冒烟测试里没人点它，进程能挂住不退出——踩过。）
+        self.warn_card = QFrame()
+        self.warn_card.setObjectName("warncard")
+        self.warn_card.setVisible(False)      # 必须在 addWidget 之前，否则启动闪一下空条
+        wl = QHBoxLayout(self.warn_card)
+        wl.setContentsMargins(14, 8, 14, 8)
+        wl.setSpacing(10)
+        self.lb_warn = QLabel("")
+        self.lb_warn.setObjectName("warn")
+        wl.addWidget(self.lb_warn, 1)
+        self.btn_warn_clean = QPushButton("去清理")
+        self.btn_warn_clean.setObjectName("warn")
+        self.btn_warn_clean.clicked.connect(self._goto_clean_tab)
+        wl.addWidget(self.btn_warn_clean)
+        self.btn_warn_ok = QPushButton("知道了")
+        self.btn_warn_ok.setObjectName("mini")
+        self.btn_warn_ok.clicked.connect(self._dismiss_warn_card)
+        wl.addWidget(self.btn_warn_ok)
+        outer.addWidget(self.warn_card)
 
         # 页签
         self.tabs = QTabWidget()
@@ -1233,6 +1257,69 @@ class MainWindow(QMainWindow):
         cbl3.addWidget(self.lb_snap_path)
         lay.addWidget(cb3)
 
+        # ---- 磁盘空间提醒（F）：只在启动时查一次，不做后台常驻
+        cb4 = QFrame()
+        cb4.setObjectName("card")
+        cbl4 = QVBoxLayout(cb4)
+        cbl4.setContentsMargins(14, 10, 14, 10)
+        cbl4.setSpacing(6)
+        r4 = QHBoxLayout()
+        r4.setSpacing(10)
+        r4.addWidget(QLabel("磁盘空间提醒"))
+        self.ck_warn = QCheckBox("可用空间不足时提醒")
+        r4.addWidget(self.ck_warn)
+        r4.addStretch(1)
+        self.lb_warn_tip = QLabel("")
+        self.lb_warn_tip.setObjectName("hint")
+        r4.addWidget(self.lb_warn_tip)
+        cbl4.addLayout(r4)
+
+        r4b = QHBoxLayout()
+        r4b.setSpacing(6)
+        r4b.addWidget(QLabel("低于"))
+        self.sp_warn_gb = QSpinBox()
+        self.sp_warn_gb.setRange(1, 100)
+        self.sp_warn_gb.setSuffix(" GB")
+        self.sp_warn_gb.setMinimumWidth(96)
+        r4b.addWidget(self.sp_warn_gb)
+        r4b.addWidget(QLabel("或"))
+        self.sp_warn_pct = QSpinBox()
+        self.sp_warn_pct.setRange(1, 50)
+        self.sp_warn_pct.setSuffix(" %")
+        self.sp_warn_pct.setMinimumWidth(84)
+        r4b.addWidget(self.sp_warn_pct)
+        r4b.addWidget(QLabel("时提醒"))
+        r4b.addSpacing(14)
+        r4b.addWidget(QLabel("提醒频率"))
+        self.cb_warn_freq = QComboBox()
+        self.cb_warn_freq.addItems(["每天一次", "每次启动"])
+        self.cb_warn_freq.setMinimumWidth(110)
+        r4b.addWidget(self.cb_warn_freq)
+        r4b.addStretch(1)
+        b_warn_check = QPushButton("立即检查")
+        b_warn_check.clicked.connect(lambda: self._check_disk_space(True))
+        r4b.addWidget(b_warn_check)
+        cbl4.addLayout(r4b)
+        self.lb_warn_hint = QLabel(
+            "只在启动程序时查一次，不常驻后台。想定期检查，可用命令行模式配 Windows 计划任务。")
+        self.lb_warn_hint.setObjectName("hint")
+        cbl4.addWidget(self.lb_warn_hint)
+        lay.addWidget(cb4)
+
+        # 先按配置填好值再接信号，免得启动时就把配置写一遍
+        self.ck_warn.setChecked(bool(self.cfg.get("warn_enabled", True)))
+        self.sp_warn_gb.setValue(int(self.cfg.get("warn_gb", 5) or 5))
+        self.sp_warn_pct.setValue(int(self.cfg.get("warn_pct", 3) or 3))
+        self.cb_warn_freq.setCurrentIndex(
+            1 if str(self.cfg.get("warn_freq", "daily")) == "always" else 0)
+        self.ck_warn.toggled.connect(self._on_warn_enabled)
+        self.sp_warn_gb.valueChanged.connect(
+            lambda v: self.cfg.set("warn_gb", int(v)))
+        self.sp_warn_pct.valueChanged.connect(
+            lambda v: self.cfg.set("warn_pct", int(v)))
+        self.cb_warn_freq.currentIndexChanged.connect(self._on_warn_freq)
+        self._sync_warn_tip()
+
         gb = QGroupBox("历史操作（可一键复用当时的选择）")
         gl = QVBoxLayout(gb)
         gl.setSpacing(10)
@@ -1590,6 +1677,114 @@ class MainWindow(QMainWindow):
                     f"<b>{fmt(free)}</b></span> <span style='color:{col}'>"
                     f"（已用 {pct:.0f}%）</span> / 共 {fmt(total)}")
                 return
+
+    # ---------------------------------------------------------- 空间提醒（F）
+    def _goto_clean_tab(self):
+        """提醒条上的「去清理」：跳到项目清理页，并顺手把卡片收起来。"""
+        self.tabs.setCurrentIndex(self.tabs.indexOf(self.tab_clean))
+        self.warn_card.setVisible(False)
+
+    def _dismiss_warn_card(self):
+        """「知道了」：本次运行不再出现（配置里的当日记录已经写过，重启也不重复）。"""
+        self.warn_card.setVisible(False)
+
+    def _warn_freq(self):
+        """提醒频率：daily = 每天每盘一次；always = 每次启动都提示。"""
+        v = str(self.cfg.get("warn_freq", "daily") or "daily").lower()
+        return v if v in ("daily", "always") else "daily"
+
+    def _on_warn_enabled(self, v):
+        self.cfg.set("warn_enabled", bool(v))
+        self._sync_warn_tip()
+
+    def _on_warn_freq(self, idx):
+        self.cfg.set("warn_freq", "always" if idx == 1 else "daily")
+        self._sync_warn_tip()
+
+    def _sync_warn_tip(self):
+        """设置页那张卡片右上角的一句话状态，跟着开关与频率实时变。"""
+        if not hasattr(self, "lb_warn_tip"):
+            return
+        if not self.ck_warn.isChecked():
+            self.lb_warn_tip.setText("提醒已关闭")
+        elif self._warn_freq() == "always":
+            self.lb_warn_tip.setText("每次启动都提示")
+        else:
+            self.lb_warn_tip.setText("每个盘每天提示一次")
+
+    def _check_disk_space(self, manual=False):
+        """启动时的空间提醒。只查当前目标盘，绝不后台常驻。
+
+        manual=True 由设置页的「立即检查」触发：忽略「今天已提醒过」，
+        也不会把今天的提醒名额用掉。
+        """
+        if not self.cfg.get("warn_enabled", True):
+            if manual:
+                self._show_warn_says("提醒已关闭")
+            return
+        want = (self.drive or "")[:2].upper()
+        hit = None
+        for letter, total, free in sysinfo.get_drives():
+            if letter.upper().startswith(want):
+                hit = (letter, total, free)
+                break
+        if not hit:
+            if manual:
+                self._show_warn_says("读不到磁盘信息")
+            return
+
+        letter, total, free = hit
+        tag = letter[:2].upper()             # "C:" —— get_drives 给的是 "C:\"，别带斜杠显示
+        gb_line = float(self.cfg.get("warn_gb", 5) or 0) * (1024 ** 3)
+        pct_line = float(self.cfg.get("warn_pct", 3) or 0)
+
+        by_gb = gb_line > 0 and free < gb_line
+        pct_now = free * 100.0 / max(total, 1)
+        by_pct = pct_line > 0 and pct_now < pct_line
+
+        if not (by_gb or by_pct):
+            if manual:
+                self._show_warn_says("当前空间充足")
+            return
+
+        today = time.strftime("%Y-%m-%d")
+        last = self.cfg.get("warn_last", "") or ""
+        if not manual and self._warn_freq() == "daily" \
+                and last.startswith(today + "|" + tag):
+            return                       # 今天这个盘已经提醒过了
+        self.cfg.set("warn_last", today + "|" + tag)
+
+        self.btn_warn_clean.setVisible(True)   # 「当前空间充足」时藏过，这里要恢复
+        self._warn_transient = False           # 真提醒，别被「2 秒后收起」误关
+        if by_gb:
+            self.lb_warn.setText(
+                f"⚠ {tag} 盘可用空间只剩 {fmt(free)}"
+                f"（不足提醒线 {fmt(gb_line)}）")
+        else:
+            self.lb_warn.setText(
+                f"⚠ {tag} 盘可用空间只剩 {pct_now:.1f}%"
+                f"（不足提醒线 {pct_line:g}%）")
+        self.warn_card.setVisible(True)
+
+    def _show_warn_says(self, text):
+        """借提醒条显示一句短反馈（设置页「立即检查」用），2 秒后自动收起。
+
+        用 _warn_transient 做记号：这 2 秒里要是真触发了提醒，那条不该被
+        定时器顺手关掉。
+        """
+        self._warn_transient = True
+        self.btn_warn_clean.setVisible(False)
+        self.lb_warn.setText(text)
+        self.warn_card.setVisible(True)
+        QTimer.singleShot(2000, self._hide_warn_says)
+
+    def _hide_warn_says(self):
+        """只收起「一句反馈」状态；真触发的提醒条不归它管。"""
+        if not getattr(self, "_warn_transient", False):
+            return
+        self._warn_transient = False
+        self.warn_card.setVisible(False)
+        self.btn_warn_clean.setVisible(True)
 
     def _refresh_categories(self):
         """分类下标注条数与合计占用。"""

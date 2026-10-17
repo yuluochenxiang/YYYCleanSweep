@@ -163,6 +163,10 @@ QTableWidget {{ gridline-color: {border}; }}
 QFrame#card {{ background: {panel}; border: 1px solid {border}; border-radius: 12px; }}
 QFrame#sidebar {{ background: {panel2}; border: 1px solid {border}; border-radius: 12px; }}
 QFrame#detail {{ background: {panel2}; border: 1px solid {border}; border-radius: 12px; }}
+/* 空间不足提醒条：浅黄底 + 描边，不抢眼但一眼能看见 */
+QFrame#warncard {{ background: {btn_warn_bg}; border: 1px solid {btn_warn_hover};
+    border-radius: 10px; }}
+QLabel#warn {{ color: {btn_warn_fg}; font-weight: 600; }}
 QGroupBox {{ background: {panel}; border: 1px solid {border}; border-radius: 10px;
     margin-top: 16px; padding: 16px 12px 12px 12px; font-weight: 600; color: {text}; }}
 QGroupBox::title {{ subcontrol-origin: margin; left: 12px; padding: 0 5px;
