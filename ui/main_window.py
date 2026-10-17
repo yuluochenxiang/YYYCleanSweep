@@ -46,6 +46,7 @@ from ui.charts import Donut, TypeBars
 from ui.dir_page import DirScanPage, MarksPage
 from ui.sysclean_page import SysCleanPage
 from ui.dup_page import DupPage
+from ui.dupdir_page import DupDirPage
 
 
 def dir_page_roots():
@@ -504,6 +505,8 @@ class MainWindow(QMainWindow):
         self.tabs.addTab(self.tab_big, "大文件定位")
         self.tabs.addTab(self.dir_page, "目录分析")
         self.tabs.addTab(self.dup_page, "文件去重")
+        self.dupdir_page = DupDirPage(self.cfg, self)
+        self.tabs.addTab(self.dupdir_page, "重复文件夹")
         self.tabs.addTab(self._build_sys_tab(), "系统信息")
         self.sysclean_page = SysCleanPage(self.cfg, self)
         self.tabs.addTab(self.sysclean_page, "系统瘦身")
@@ -521,6 +524,7 @@ class MainWindow(QMainWindow):
             # 大文件定位：底层 find_large_files 本来就吃任意目录，这里必须是
             # dir 才会显示「浏览」按钮、且选中的目录不被截成盘符
             self.tab_big: ("target_big", "dir", "扫描位置"),
+            self.dupdir_page: ("target_dupdir", "dir", "扫描位置"),
         }
         self._sync_target()
 
@@ -629,6 +633,8 @@ class MainWindow(QMainWindow):
             self.dir_page.set_root(text)
         elif w is self.tab_big:
             pass                      # 值已存进配置，点「开始扫描」时读取
+        elif w is self.dupdir_page:
+            self.dupdir_page.set_root(text)
         self._refresh_disk(text)
 
     def _browse_target(self):
@@ -1431,6 +1437,8 @@ class MainWindow(QMainWindow):
             self.marks_page.on_theme(self.theme)
         if hasattr(self, "dup_page"):
             self.dup_page.on_theme(self.theme)
+        if hasattr(self, "dupdir_page"):
+            self.dupdir_page.on_theme(self.theme)
         # 缓存那两行的数字用了强调色的富文本，换主题得跟着重排一遍
         if hasattr(self, "lb_cache"):
             self._refresh_cache_label()

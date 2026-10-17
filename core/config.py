@@ -41,6 +41,10 @@ DEFAULTS = {
     "dup_keep_dirs": [],           # 优先保留目录
     # ---- 空间快照（目录分析页「空间变化」）
     "snap_keep": 30,               # 每个扫描根保留多少批快照
+    # ---- 重复文件夹
+    "dupdir_min_mb": 50,           # 低于这个体积的目录不参与比对
+    "dupdir_overlap": 80,          # 「大部分相同」的顶层名字重合率阈值（%）
+    "dupdir_skip": True,           # 跳过 node_modules / venv 等噪音目录
 }
 
 
