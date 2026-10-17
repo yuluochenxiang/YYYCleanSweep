@@ -28,8 +28,8 @@ class DirNode:
     """
 
     __slots__ = ("path", "name", "depth", "parent",
-                 "own_size", "own_count", "own_ext", "own_mtime",
-                 "agg_size", "agg_count", "agg_ext", "agg_mtime",
+                 "own_size", "own_count", "own_ext", "own_mtime", "own_atime",
+                 "agg_size", "agg_count", "agg_ext", "agg_mtime", "agg_atime",
                  "children", "truncated", "error")
 
     def __init__(self, path, depth, parent):
@@ -41,20 +41,24 @@ class DirNode:
         self.own_count = 0
         self.own_ext = {}
         self.own_mtime = 0.0
+        self.own_atime = 0.0
         self.agg_size = 0
         self.agg_count = 0
         self.agg_ext = {}
         self.agg_mtime = 0.0
+        self.agg_atime = 0.0
         self.children = []
         self.truncated = False
         self.error = None
 
 
 def _scan_one(path):
-    """扫描单层目录，返回 (size, count, ext_dict, subdirs, newest_mtime, error)。"""
+    """扫描单层目录，返回 (size, count, ext_dict, subdirs, newest_mtime,
+    newest_atime, error)。"""
     size = 0
     count = 0
     newest = 0.0
+    anewer = 0.0
     ext = {}
     subs = []
     try:
@@ -73,6 +77,15 @@ def _scan_one(path):
                     count += 1
                     if st.st_mtime > newest:
                         newest = st.st_mtime
+                    at = st.st_atime
+                    # Windows 可能压根不更新访问时间（NTFS 的
+                    # NtfsDisableLastAccessUpdate 策略），这时 atime 会停在
+                    # 创建那一刻、甚至早于修改时间。检测到就用 mtime 兜底，
+                    # 绝不让「最后访问」列出现早得离谱的时间。
+                    if at + 1.0 < st.st_mtime:
+                        at = st.st_mtime
+                    if at > anewer:
+                        anewer = at
                     x = os.path.splitext(e.name)[1].lstrip(".").lower()
                     key = x if x else "(无扩展名)"
                     rec = ext.get(key)
@@ -84,8 +97,8 @@ def _scan_one(path):
                 except OSError:
                     continue
     except OSError as ex:
-        return size, count, ext, subs, newest, str(ex)
-    return size, count, ext, subs, newest, None
+        return size, count, ext, subs, newest, anewer, str(ex)
+    return size, count, ext, subs, newest, anewer, None
 
 
 class DirTree:
@@ -96,6 +109,8 @@ class DirTree:
         self.nodes = {}
         self.scanned_dirs = 0
         self.stopped = False
+        # 这台机器有没有真的在记录「访问时间」。False 时界面要如实说明来源。
+        self.atime_reliable = False
 
     # ---------- 扫描 ----------
     def scan(self, max_depth=4, workers=8, max_dirs=400000,
@@ -137,11 +152,12 @@ class DirTree:
             next_level = []
             last = (depth == max_depth)
             for (path, node), res in zip(batch, results):
-                size, count, ext, subs, mtime, err = res
+                size, count, ext, subs, mtime, atime, err = res
                 node.own_size = size
                 node.own_count = count
                 node.own_ext = ext
                 node.own_mtime = mtime
+                node.own_atime = atime
                 node.error = err
                 self.scanned_dirs += 1
                 if last:
@@ -213,6 +229,7 @@ class DirTree:
             nd.agg_count = nd.own_count
             nd.agg_ext = {k: list(v) for k, v in nd.own_ext.items()}
             nd.agg_mtime = nd.own_mtime
+            nd.agg_atime = nd.own_atime
         ordered = sorted(nodes.values(), key=lambda x: x.depth, reverse=True)
         for nd in ordered:
             p = nd.parent
@@ -222,6 +239,7 @@ class DirTree:
             par.agg_size += nd.agg_size
             par.agg_count += nd.agg_count
             par.agg_mtime = max(par.agg_mtime, nd.agg_mtime)
+            par.agg_atime = max(par.agg_atime, nd.agg_atime)
             dst = par.agg_ext
             for k, v in nd.agg_ext.items():
                 d = dst.get(k)
@@ -230,6 +248,11 @@ class DirTree:
                 else:
                     d[0] += v[0]
                     d[1] += v[1]
+        # 判断本机有没有真的在记访问时间：只要有一个文件的访问时间明显晚于
+        # 修改时间（超过 1 小时），就说明系统在记。一个都没有，多半被策略关了。
+        # 放在 aggregate 末尾，scan 与 deepen 两条路径都能覆盖到。
+        self.atime_reliable = any(
+            nd.own_atime > nd.own_mtime + 3600.0 for nd in nodes.values())
 
     # ---------- 查询 ----------
     def node(self, path):
@@ -237,7 +260,7 @@ class DirTree:
         return self.nodes.get(os.path.normpath(path))
 
     def children(self, path, sort_key="size", reverse=True):
-        """取子目录列表，支持按占用 / 文件数 / 名称 / 最近修改排序。"""
+        """取子目录列表，支持按占用 / 文件数 / 名称 / 最近修改 / 最后访问排序。"""
         nd = self.node(path)
         if not nd:
             return []
@@ -250,6 +273,8 @@ class DirTree:
             out.sort(key=lambda x: x.name.lower(), reverse=reverse)
         elif sort_key == "mtime":
             out.sort(key=lambda x: x.agg_mtime, reverse=reverse)
+        elif sort_key == "atime":
+            out.sort(key=lambda x: x.agg_atime, reverse=reverse)
         return out
 
     def total(self):

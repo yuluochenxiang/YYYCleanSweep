@@ -37,8 +37,10 @@ from ui.widgets import (
     FirstColFit, page_layout, top_bar, PathTreeWidget,
 )
 
-SORT_KEYS = ["size", "count", "name", "mtime", "risk"]
-SORT_LABELS = ["按占用", "按文件数", "按名称", "按最近修改", "按风险"]
+SORT_KEYS = ["size", "count", "name", "mtime", "atime", "risk"]
+SORT_LABELS = ["按占用", "按文件数", "按名称", "按最近修改", "按最后访问", "按风险"]
+# 「多久没打开」下拉对应的月数（与下拉文案一一对应，0 = 不限）
+IDLE_MONTHS = [0, 6, 12, 36]
 # 按风险排序时：越值得动手的排越前
 RISK_PRI = {"safe": 3, "caution": 2, "migrate": 2, "keep": 1, "danger": 0}
 
@@ -89,7 +91,7 @@ class DirScanPage(QWidget):
 
     列数从 8 减到 6：作用/建议与最近修改改成悬浮提示，不再占横向空间。
     """
-    COLS = ["目录", "占用", "占比", "文件数", "主要类型", "标记"]
+    COLS = ["目录", "占用", "占比", "文件数", "最后访问", "主要类型", "标记"]
 
     def __init__(self, marks: MarkStore, cfg=None, parent=None):
         super().__init__(parent)
@@ -114,6 +116,9 @@ class DirScanPage(QWidget):
                 if self.cfg.get("sort_dir", 0) < len(SORT_KEYS) else "size"
             self.min_mb = int(self.cfg.get("dir_min_mb", 0) or 0)
             self.hide_marked = bool(self.cfg.get("dir_hide_marked", False))
+            self.idle_months = int(self.cfg.get("dir_idle_months", 0) or 0)
+        else:
+            self.idle_months = 0
         # 扫描位置改由主窗口顶部的统一「目标」选择器提供（各页独立记忆），
         # 这里只保存当前值，兼容旧的 dir_root 配置键。
         self.root_path = ""
@@ -173,6 +178,17 @@ class DirScanPage(QWidget):
         self.chk_hide.setChecked(self.hide_marked)
         self.chk_hide.stateChanged.connect(self._on_hide_changed)
         bl2.addWidget(self.chk_hide)
+
+        bl2.addWidget(QLabel("多久没打开"))
+        self.cb_idle = QComboBox()
+        self.cb_idle.addItems(["不限", "6 个月没打开", "1 年没打开", "3 年没打开"])
+        self.cb_idle.setCurrentIndex(
+            IDLE_MONTHS.index(self.idle_months)
+            if self.idle_months in IDLE_MONTHS else 0)
+        self.cb_idle.setToolTip(
+            "只看该目录下所有文件都已经这么久没被打开过（按最近一次访问时间算）")
+        self.cb_idle.currentIndexChanged.connect(self._on_idle_changed)
+        bl2.addWidget(self.cb_idle)
         self.btn_view = QPushButton("方块图")
         self.btn_view.setToolTip("在树形列表与方块图（面积=占用）之间切换")
         self.btn_view.clicked.connect(self._toggle_view)
@@ -232,13 +248,13 @@ class DirScanPage(QWidget):
         hh = self.tw.header()
         hh.setMinimumSectionSize(70)
         hh.setSectionResizeMode(0, QHeaderView.Interactive)   # 文件名列：可手动调宽看全
-        for c in (1, 2, 3, 4):
+        for c in (1, 2, 3, 4, 5):
             hh.setSectionResizeMode(c, QHeaderView.ResizeToContents)
-        hh.setSectionResizeMode(5, QHeaderView.Stretch)        # 末列吸收剩余宽度
+        hh.setSectionResizeMode(6, QHeaderView.Stretch)        # 末列吸收剩余宽度
         self.tw.setColumnWidth(0, 300)
         # 拉宽 / 缩窄窗口时第一列（目录）跟着伸缩，其余列各有最小宽不被挤扁
         FirstColFit(self.tw, min_w=280,
-                    others={1: 104, 2: 92, 3: 84, 4: 124, 5: 84})
+                    others={1: 104, 2: 92, 3: 84, 4: 104, 5: 124, 6: 84})
         self.tw.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
         # 点表头排序：占用按真实字节、占比按百分比、文件数按整数
         self.sorter = HeaderSorter(self.tw, key_fn=self._sort_key,
@@ -558,10 +574,10 @@ class DirScanPage(QWidget):
         self.box_snap.show()
 
     # 表头列 -> 排序方式（点表头时让上面的「排序」下拉也跟着变，避免两处打架）
-    COL_SORT = {0: "name", 1: "size", 2: "size", 3: "count"}
+    COL_SORT = {0: "name", 1: "size", 2: "size", 3: "count", 4: "atime"}
 
     def _sort_key(self, col, item):
-        """占比列按百分比数值、文件数列按整数，其余交给默认规则。"""
+        """占比按百分比、文件数按整数、最后访问按时间戳，其余交给默认规则。"""
         if item is None:
             return None
         if col == 2:
@@ -569,6 +585,9 @@ class DirScanPage(QWidget):
         if col == 3:
             digits = "".join(ch for ch in item.text(3) if ch.isdigit())
             return int(digits or 0)
+        if col == 4:
+            v = item.data(4, Qt.UserRole)
+            return float(v) if v else 0.0
         return None
 
     def _on_header_sorted(self, col, desc):
@@ -603,6 +622,12 @@ class DirScanPage(QWidget):
             self.cfg.set("dir_hide_marked", self.hide_marked)
         self._rebuild()
 
+    def _on_idle_changed(self, i):
+        self.idle_months = IDLE_MONTHS[i] if 0 <= i < len(IDLE_MONTHS) else 0
+        if self.cfg:
+            self.cfg.set("dir_idle_months", self.idle_months)
+        self._rebuild()
+
     # ---------------- 方块图（Treemap）----------------
     def _toggle_view(self):
         """在树形列表与方块图之间切换（同一位置，共用右侧详情）。"""
@@ -633,11 +658,17 @@ class DirScanPage(QWidget):
         if not self.tree:
             return []
         limit = (self.min_mb or 0) * 1024 * 1024
+        # 方块图必须与树表同源：树表有的筛选这里一个都不能少，否则两视图结果不一致
+        idle_cut = 0.0
+        if self.idle_months > 0:
+            idle_cut = time.time() - self.idle_months * 30.5 * 86400
         out = []
         for k in self._sorted_children(path):
             if k.agg_size <= 0:
                 continue
             if limit and k.agg_size < limit:
+                continue
+            if idle_cut and k.agg_atime > 0 and k.agg_atime > idle_cut:
                 continue
             if self.hide_marked and self.marks.effective(k.path)[0]:
                 continue
@@ -708,6 +739,8 @@ class DirScanPage(QWidget):
             kids.sort(key=lambda x: x.name.lower())
         elif self.sort_key == "mtime":
             kids.sort(key=lambda x: x.agg_mtime, reverse=True)
+        elif self.sort_key == "atime":
+            kids.sort(key=lambda x: x.agg_atime, reverse=True)
         elif self.sort_key == "risk":
             kids.sort(key=lambda x: (-RISK_PRI.get(
                 self._info(x.path)["risk"], 0), -x.agg_size))
@@ -720,6 +753,11 @@ class DirScanPage(QWidget):
                      f"　占本次扫描 {fmt_pct(nd.agg_size, total)}")
         lines.append(f"自身文件 {fmt(nd.own_size)}　文件数 {nd.agg_count}")
         lines.append(f"最近修改 {fmt_datetime(nd.agg_mtime)}")
+        if nd.agg_atime > 0:
+            tail_a = f"最后访问 {fmt_datetime(nd.agg_atime)}"
+            if self.tree and not self.tree.atime_reliable:
+                tail_a += "（本机未记录访问时间，显示的是修改时间）"
+            lines.append(tail_a)
         lines.append("")
         lines.append(f"作用：{info['purpose']}")
         lines.append(f"建议：{info['advice']}")
@@ -744,15 +782,17 @@ class DirScanPage(QWidget):
             ("≥ " if nd.truncated else "") + fmt(nd.agg_size),
             fmt_pct(nd.agg_size, total),
             str(nd.agg_count),
+            fmt_datetime(nd.agg_atime) if nd.agg_atime > 0 else "—",
             self._main_cat(nd),
             self._mark_text(mark, note, inherited),
         ])
         it.setData(0, Qt.UserRole, nd.path)
         it.setData(1, Qt.UserRole, nd.agg_size)          # 给占比条用
+        it.setData(4, Qt.UserRole, float(nd.agg_atime))  # 给「按最后访问」排序用
         it.setToolTip(0, self._row_tip(nd.path, nd, info, mark, note,
                                        inherited, total))
         it.setToolTip(1, f"{fmt(nd.agg_size)}（{fmt_bytes(nd.agg_size)} 字节）")
-        for c in (1, 2, 3):
+        for c in (1, 2, 3, 4):
             it.setTextAlignment(c, Qt.AlignRight | Qt.AlignVCenter)
         self._paint(it, mark, note, info["risk"])
         if nd.children or nd.truncated:
@@ -768,8 +808,16 @@ class DirScanPage(QWidget):
         kids = self._sorted_children(path)
         min_b = self.min_mb * 1024 * 1024
         total = self.tree.total() or 1
+        # 「多久没打开」：目录整体的最后访问时间早于这个时刻才算命中。
+        # 完全没扫到文件的目录（agg_atime 为 0）不筛选——它们往往读不了，
+        # 不能因为读不到时间就把它算成「几年没打开」而错误地推荐给用户。
+        idle_cut = 0.0
+        if self.idle_months > 0:
+            idle_cut = time.time() - self.idle_months * 30.5 * 86400
         for nd in kids:
             if nd.agg_size < min_b:
+                continue
+            if idle_cut and nd.agg_atime > 0 and nd.agg_atime > idle_cut:
                 continue
             mark, note, _owner, _inherited = self.marks.effective(nd.path)
             if self.hide_marked and (mark or note):
@@ -790,12 +838,12 @@ class DirScanPage(QWidget):
             fg = QColor(p["tint_fg"][kind])
             for col in range(len(self.COLS)):
                 it.setBackground(col, c)
-            it.setForeground(5, fg)
+            it.setForeground(6, fg)          # 6 = 标记列（加列后从 5 改过来）
             it.setForeground(0, QColor(p["text"]))
         else:
             rc = p["risk"].get(risk, p["risk"]["keep"])
             it.setForeground(2, QColor(p["text_dim"]))
-            it.setForeground(4, QColor(rc))
+            it.setForeground(5, QColor(rc))  # 5 = 主要类型列（加列后从 4 改过来）
 
     def _info(self, path):
         if path not in self._cache:

@@ -25,6 +25,7 @@ DEFAULTS = {
     "dir_depth": 2,
     "dir_min_mb": 0,
     "dir_hide_marked": False,
+    "dir_idle_months": 0,          # 目录分析：只看多久没打开过的目录（0=不限）
     "big_min_mb": 500,
     "history": [],                 # [{time, ids, names, freed, mode}]
     # ---- 音效
