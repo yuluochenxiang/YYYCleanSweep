@@ -8,7 +8,8 @@ Python 3.13 + PySide6 写成，规则和目录知识库全部是可编辑的 JSO
 
 ## 界面预览
 
-以下为 v3.30 实拍截图（点任意一张可看大图）：
+以下为主要页面的实拍截图（点任意一张可看大图）。页签顺序自 v3.40 起改为
+项目清理 → 目录分析 → 大文件定位 → 文件夹去重 → 文件去重 → …，页面内容以最新版本为准：
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/b0e1c55c-e350-4d4c-acbb-a73f4ce20f78" alt="项目清理" width="49%">
@@ -573,13 +574,20 @@ python build.py
 
 ```
 YYYCleanSweep/
-├── main.py                  入口
+├── main.py                  入口（先解析命令行参数，命中 CLI 才 import PySide6）
+├── build.py / build.bat     一键打包：onefile + onedir 两种产物，并部署到 app\
 ├── core/
-│   ├── rules.py             规则加载与路径解析（支持切换扫描盘）
+│   ├── paths.py             数据目录唯一入口（%APPDATA%\YYYCleanSweep，写盘先 .tmp 再替换）
+│   ├── rules.py             规则加载与路径解析（支持切换扫描盘、exe 旁 rules 优先）
 │   ├── scanner.py           占用扫描（inode 去重防 junction 死循环）
 │   ├── cleaner.py           三种删除模式 + 逐条记录 + 每项目明细
 │   ├── dirstat.py           多线程目录树扫描，支持懒加载与深入扫描
-│   ├── dupfinder.py         文件去重：大小分组 + 可选内容校验 + 保留决策
+│   ├── dupfinder.py         文件去重：大小分组 + 首末块/完整 MD5 + 相似查找 + 保留决策
+│   ├── dupdirs.py           文件夹去重：Merkle 签名判同 + 重合率找近似项目副本
+│   ├── imghash.py           感知哈希 dHash（位切片分桶聚类，避免 O(n²)）
+│   ├── archive.py           压缩包只读清单（zip 中央目录 / tar 流式，rar 明确降级）
+│   ├── cache.py             扫描结果缓存（7 天 TTL，只在 scan_rule 处接入）
+│   ├── thumbs.py            缩略图：Qt 解码 → IShellItemImageFactory → 系统图标三级降级
 │   ├── knowledge.py         目录知识库匹配器 + 兜底推断
 │   ├── marks.py             标记持久化（子目录继承）
 │   ├── config.py            配置与历史
@@ -587,31 +595,44 @@ YYYCleanSweep/
 │   ├── sizefmt.py           全局统一的容量 / 百分比格式化
 │   ├── sound.py             音效：现场合成 WAV + winsound 播放
 │   ├── version.py           版本、更新方式与反馈说明
-│   └── system.py            系统信息（不依赖 PowerShell）
+│   ├── system.py            系统信息（不依赖 PowerShell）
+│   ├── cli.py               命令行模式：--scan / --json / --html / --top / --quiet
+│   ├── exporter.py          导出清理脚本 .bat（回收站走 PowerShell，永久删除走 cmd）
+│   └── ruleedit.py          规则编辑器的校验 / 保存 / 备份 / 恢复
 ├── ui/
 │   ├── theme.py             亮/暗调色板 + QSS 模板
-│   ├── main_window.py       主窗口
+│   ├── main_window.py       主窗口、页签装配、空间提醒条、导出脚本入口
 │   ├── dir_page.py          目录分析页 + 标记管理页
 │   ├── dup_page.py          文件去重查找与去重页
+│   ├── dupdir_page.py       文件夹去重页
+│   ├── sysclean_page.py     系统瘦身页（休眠/页面文件/还原点/更新缓存/回收站）
+│   ├── rule_editor.py       清理规则表格编辑器（分类/方式/风险下拉，保存前校验）
 │   ├── charts.py            环形占比图 Donut + 类型构成条 TypeBars
 │   ├── treemap.py           方块图 Treemap（squarified 布局自实现，零依赖）
 │   ├── busy.py              统一的"扫描中"状态条（旋转指示 + 流动条纹）
 │   ├── report.py            清理总结报告弹窗
 │   ├── about.py             关于 / 帮助（说明、FAQ、更新、反馈）
-│   ├── sysclean_page.py     系统瘦身页（休眠/页面文件/还原点/更新缓存/回收站）
 │   ├── sound.py             分级点击音事件过滤 + 右键菜单音效绑定
 │   └── widgets.py           统一行样式委托、自绘勾选框/展开三角/下拉三角、路径富文本
-└── rules/
-    ├── clean_rules.json
-    ├── dir_knowledge.json
-    └── file_types.json
+├── rules/
+│   ├── clean_rules.json     清理规则（80 条，exe 旁优先读取，用户可自改）
+│   ├── dir_knowledge.json   目录知识库（428 条）
+│   └── file_types.json      文件类型与配色
+└── docs/
+    ├── 开发笔记.md / Git提交流程.md
+    └── 实现手册_00_总纲.md … 实现手册_09_I_相似查找.md
 ```
 
 ---
 
 ## 九、重新打包
 
-工程已内置两份 spec，直接用它打包即可（数据文件已写进 `datas`，无需手敲 `--add-data`）：
+**最省事的一条路**：双击 `build.bat`（或 `python build.py`）。它会按 `core/version.py`
+里的版本号建 `E:\work\WB_\YYYCleanSweep_<版本>\`，依次构建 onefile 与 onedir，
+把工程里的 `rules\*.json` 同步到 `app\rules\`，再把旧 `Fast` 目录改名备份后部署。
+只构建不部署用 `python build.py --no-deploy`。
+
+手动打包也仍然可以——工程已内置两份 spec（数据文件已写进 `datas`，无需手敲 `--add-data`）：
 
 ```bash
 # 文件夹版（推荐日常用，启动快）
@@ -664,9 +685,9 @@ pyinstaller YYYCleanSweep.spec --noconfirm --distpath=_oneout --workpath=_onebui
 - **图表优先于文字**：右侧详情一律「环形图 + 指标 + 条形图」，
     
   被精简掉的列全部收进鼠标悬浮提示。
-- **扫描中表现统一**：四个会扫描的页（项目清理 / 目录分析 / 大文件定位 /
+- **扫描中表现统一**：五个会扫描的页（项目清理 / 目录分析 / 大文件定位 /
     
-  文件去重）共用同一个 `ui/busy.py::ScanBanner`，位置也都在**底部操作条下面**：
+  文件夹去重 / 文件去重）共用同一个 `ui/busy.py::ScanBanner`，位置也都在**底部操作条下面**：
     
   左侧旋转指示器、主副文案、已用秒数、停止按钮，底边一条条纹进度条
     
