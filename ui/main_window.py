@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QDialog, QRadioButton, QFileDialog, QLineEdit, QGroupBox, QInputDialog,
     QAbstractItemView, QSplitter, QTableWidget, QTableWidgetItem, QCheckBox,
     QApplication, QStyle, QStyledItemDelegate, QComboBox, QSpinBox, QSlider,
-    QGridLayout, QMenu, QLayout, QSizePolicy,
+    QGridLayout, QMenu, QLayout, QSizePolicy, QScrollArea,
 )
 
 from core import system as sysinfo
@@ -563,12 +563,13 @@ class MainWindow(QMainWindow):
         self.marks_page = MarksPage(self.marks, self)
         self.dup_page = DupPage(self.cfg, self.marks, self.journal, self.sfx, self)
         self.tab_big = self._build_bigfile_tab()
-        # 第 2 / 第 3 页的位置：大文件定位 在前，目录分析 在后
-        self.tabs.addTab(self.tab_big, "大文件定位")
+        # 第 2 / 第 3 页的位置：目录分析 在前，大文件定位 在后
         self.tabs.addTab(self.dir_page, "目录分析")
-        self.tabs.addTab(self.dup_page, "文件去重")
+        self.tabs.addTab(self.tab_big, "大文件定位")
+        # 第 4 / 第 5 页：文件夹去重 在前，文件去重 在后
         self.dupdir_page = DupDirPage(self.cfg, self)
-        self.tabs.addTab(self.dupdir_page, "重复文件夹")
+        self.tabs.addTab(self.dupdir_page, "文件夹去重")
+        self.tabs.addTab(self.dup_page, "文件去重")
         self.tabs.addTab(self._build_sys_tab(), "系统信息")
         self.sysclean_page = SysCleanPage(self.cfg, self)
         self.tabs.addTab(self.sysclean_page, "系统瘦身")
@@ -1143,8 +1144,20 @@ class MainWindow(QMainWindow):
         return w
 
     def _build_settings_tab(self):
+        # 设置项越加越多（主题 / 音效 / 缓存 / 快照 / 空间提醒 / 清理规则 / 历史），
+        # 窗口不高时下面的卡片会被直接截掉、连滚动条都没有。这里整页塞进滚动区，
+        # 内容多高都能翻到；横向永远不许滚，宽度交给窗口自己撑。
         w = QWidget()
-        lay = QVBoxLayout(w)
+        outer = QVBoxLayout(w)
+        outer.setContentsMargins(0, 0, 0, 0)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.NoFrame)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        inner = QWidget()
+        lay = QVBoxLayout(inner)
         lay.setContentsMargins(0, 8, 0, 0)
         lay.setSpacing(10)
 
@@ -1462,6 +1475,9 @@ class MainWindow(QMainWindow):
         self._fill_history()
         self._refresh_cache_label()
         self._refresh_thumb_cache_label()
+        lay.addStretch(1)          # 内容不够一屏时把卡片顶上去，不要散在中间
+        scroll.setWidget(inner)
+        outer.addWidget(scroll)
         return w
 
     # ---------------------------------------------------------- 缓存
@@ -2615,7 +2631,8 @@ class MainWindow(QMainWindow):
         self._set_checked_rules([i for i in ids
                                  if i in self.by_id
                                  and not self._rule_protected(self.by_id[i])])
-        self.tabs.setCurrentIndex(0)
+        # 用 indexOf 而不是下标 0：页签顺序调整过，写死下标会跳错页
+        self.tabs.setCurrentIndex(self.tabs.indexOf(self.tab_clean))
         self._refresh_tree()
         self.lb_free.setText(f"已复用 {len(ids)} 项的历史选择")
 
