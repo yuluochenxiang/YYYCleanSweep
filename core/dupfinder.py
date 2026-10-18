@@ -14,10 +14,14 @@ from concurrent.futures import ThreadPoolExecutor
 MATCH_SIZE = 0
 MATCH_QUICK = 1
 MATCH_FULL = 2
+# ⚠️ 新值只能加在末尾：这个数字会写进用户配置（dup_match），
+# 插在中间会让老用户的「完整 MD5」突然变成别的意思。
+MATCH_SIMILAR = 3
 MATCH_LABELS = [
     "仅按大小（最快，可能误判）",
     "大小 + 快速校验（推荐）",
     "大小 + 完整 MD5（最准，慢）",
+    "相似查找（仅图片，看内容）",
 ]
 
 # 「优先保留目录」命中时永远排第一；没命中时按下面的规则决定留哪个
@@ -117,13 +121,20 @@ def _hash(path, match):
 class DupFinder:
     """扫描两个目录（可以相同），返回重复文件分组。"""
 
-    def __init__(self, dir_a, dir_b=None, min_bytes=1, match=MATCH_QUICK):
+    def __init__(self, dir_a, dir_b=None, min_bytes=1, match=MATCH_QUICK,
+                 sim_dist=None, sim_gif=True):
         self.dir_a = os.path.normpath(dir_a) if dir_a else ""
         self.dir_b = os.path.normpath(dir_b or "") if dir_b else ""
-        self.min_bytes = max(0, int(min_bytes))
         self.match = match
+        # 相似查找不吃「大于 N MB」这道门：一张 4000×3000 的照片往往只有 400 KB，
+        # 按 1 MB 筛会把绝大多数真实照片直接漏掉。这一路改成按像素筛
+        # （imghash.MIN_EDGE / MAX_EDGE），比按文件大小合理得多。
+        self.min_bytes = 0 if match == MATCH_SIMILAR else max(0, int(min_bytes))
+        self.sim_dist = sim_dist          # 只有相似查找用；None = 严格档
+        self.sim_gif = bool(sim_gif)      # 关掉就完全不看 GIF
         self.stopped = False
         self.scanned_files = 0
+        self.sim_skipped = {}             # 相似查找：{"原因": 数量}，给界面报数
 
     def cancel(self):
         """请求停止。scan() 会在下一个检查点收手（不会硬杀线程）。"""
@@ -152,6 +163,11 @@ class DupFinder:
         self.scanned_files = len(all_files)
         if self.stopped:
             return []
+
+        # 相似查找不走「按大小分组」——相似的两张图大小往往差很多，
+        # 先按大小筛就把真正的相似对筛没了。这条路单独走。
+        if self.match == MATCH_SIMILAR:
+            return self._scan_similar(all_files, on_progress, should_cancel)
 
         # ---- 按大小分组
         by_size = {}
@@ -192,8 +208,104 @@ class DupFinder:
                 groups.append({"size": size, "hash": hv, "files": files})
         return self._finish(groups)
 
+    def _scan_similar(self, all_files, on_progress, should_cancel):
+        """相似查找：算每张图的感知哈希，再聚类。
+
+        这一路不复用 MD5 通路，因为「内容完全相同」和「看起来像」是两件事：
+        缩放、重压缩过的同一张图，MD5 天差地别，dHash 却只差几位。
+        """
+        from core import imghash as IH
+
+        dist = self.sim_dist if self.sim_dist is not None else IH.LEVEL_STRICT
+        skipped = {}
+
+        def skip(reason):
+            skipped[reason] = skipped.get(reason, 0) + 1
+
+        # ---- 1. 筛出能比对的图（只看后缀与像素尺寸，不解码）
+        pics = []
+        for i, f in enumerate(all_files):
+            if should_cancel and should_cancel():
+                return []
+            if IH.is_vector(f["path"]):
+                skip("矢量或不适合比对的图")
+                continue
+            if not IH.is_candidate(f["path"]):
+                continue          # 非图片不计数：几十万个非图片文件数了也没用
+            if not self.sim_gif and f["path"].lower().endswith(".gif"):
+                skip("已关闭 GIF")
+                continue
+            w, h = IH.size_of(f["path"])
+            why = IH.skip_reason(f["path"], w, h)
+            if why:
+                skip(why)
+                continue
+            pics.append(f)
+            if on_progress and i % 200 == 0:
+                on_progress("筛选图片", i)
+        self.sim_skipped = skipped
+
+        if len(pics) < 2:
+            return []
+
+        # ---- 2. 算哈希。解码是 CPU 活，开 4 个线程压一压
+        def job(f):
+            if should_cancel and should_cancel():
+                return None
+            return IH.dhash(f["path"])
+
+        items = []
+        done = 0
+        with ThreadPoolExecutor(max_workers=4) as ex:
+            for f, hv in zip(pics, ex.map(job, pics)):
+                done += 1
+                if hv is None:
+                    skip("读取失败")
+                    continue
+                items.append((f, hv))
+                if on_progress and done % 20 == 0:
+                    on_progress("计算图片指纹", done)
+        if self.stopped:
+            return []
+
+        # ---- 3. 聚类
+        def on_group(d, total):
+            if on_progress:
+                on_progress("比对相似度", d)
+
+        idx_groups = IH.group_similar(
+            [(f["path"], hv) for f, hv in items], dist, on_group)
+
+        groups = []
+        for idxs in idx_groups:
+            files = [items[i][0] for i in idxs]
+            hs = [items[i][1] for i in idxs]
+            # 每张图记「与组内最像的另一张有多像」，详情面板直接拿去显示。
+            # 不比就显示不了百分比，用户只能面对一个「疑似」无从判断。
+            for i, (f, hv) in enumerate(zip(files, hs)):
+                best = 0.0
+                for j, other in enumerate(hs):
+                    if i == j:            # 用下标比，别用 ==：整数哈希会误判自身
+                        continue
+                    s = IH.similarity(hv, other)
+                    if s > best:
+                        best = s
+                f["sim"] = best
+            # size / hash 先占位，_finish 里按相似组的规矩重算
+            groups.append({"size": 0, "hash": "", "files": files,
+                           "kind": "similar"})
+        return self._finish(groups)
+
     def _finish(self, groups):
         for g in groups:
+            if g.get("kind") == "similar":
+                # 相似组内每张大小都不同，套「大小 × (n-1)」会算出离谱的数。
+                # 按「留最大的、其余算冗余」估：sum - max。
+                g["files"].sort(key=lambda x: (-x["size"], x["path"].lower()))
+                sizes = [x["size"] for x in g["files"]]
+                g["size"] = sizes[0]
+                g["waste"] = sum(sizes) - sizes[0]
+                continue
             g["files"].sort(key=lambda x: x["path"].lower())
             g["waste"] = g["size"] * (len(g["files"]) - 1)
         groups.sort(key=lambda g: (-g["waste"], -g["size"]))

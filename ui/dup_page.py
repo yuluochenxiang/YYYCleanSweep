@@ -23,9 +23,10 @@ from PySide6.QtWidgets import (
 )
 
 from core.dupfinder import (
-    DupFinder, MATCH_LABELS, MATCH_QUICK, RULE_LABELS, RULES, RULE_CTIME_OLD,
-    pick_keeper, in_priority,
+    DupFinder, MATCH_LABELS, MATCH_QUICK, MATCH_SIMILAR,
+    RULE_LABELS, RULES, RULE_CTIME_OLD, pick_keeper, in_priority,
 )
+from core import imghash as IH
 from core.cleaner import remove_path, RECYCLE, BACKUP, PERMANENT, MODE_LABEL
 from core.journal import Journal
 from core import system as sysinfo
@@ -161,6 +162,10 @@ class DupPage(QWidget):
         self.rule = int(d.get("dup_rule", RULE_CTIME_OLD))
         self.keep_dirs = list(d.get("dup_keep_dirs", []) or [])
         self.mode = d.get("dup_mode", RECYCLE)
+        # ---- 相似查找（判定方式的第四项）
+        self.sim_level = int(d.get("sim_level", 0) or 0)
+        self.sim_gif = bool(d.get("sim_include_gif", True))
+        self.sim_ignored = list(d.get("sim_ignored", []) or [])
 
         # ---- 缩略图预览（要放在 d 之后，它们读的是同一份配置）
         self.thumbs_on = bool(d.get("dup_thumbs", True))
@@ -248,9 +253,20 @@ class DupPage(QWidget):
             QComboBox.SizeAdjustPolicy.AdjustToContentsOnFirstShow)
         self.cb_match.setMinimumWidth(150)
         self.cb_match.addItems(MATCH_LABELS)
-        self.cb_match.setCurrentIndex(self.match if self.match < 3 else 1)
+        self.cb_match.setCurrentIndex(self.match if self.match <= 3 else 1)
         self.cb_match.currentIndexChanged.connect(self._on_match_changed)
         b2l.addWidget(self.cb_match)
+        # 「相似度」只在判定方式选了「相似查找」时才露面，平时整组藏起来，
+        # 免得给不用这个功能的人多两个看不懂的下拉
+        self.lb_sim = QLabel("相似度")
+        self.cb_sim = QComboBox()
+        self.cb_sim.addItems(IH.LEVEL_LABELS)
+        self.cb_sim.setCurrentIndex(
+            self.sim_level if 0 <= self.sim_level < len(IH.LEVEL_LABELS) else 0)
+        self.cb_sim.setToolTip(IH.LEVEL_HINTS[self.cb_sim.currentIndex()])
+        self.cb_sim.currentIndexChanged.connect(self._on_sim_level_changed)
+        b2l.addWidget(self.lb_sim)
+        b2l.addWidget(self.cb_sim)
         # 「判定方式」右侧同一行放弹出式的去重保一筛选规则入口
         b2l.addSpacing(14)
         self._build_top_filter(b2l)
@@ -274,6 +290,18 @@ class DupPage(QWidget):
         b2l.addWidget(self.btn_scan)
         b2l.addWidget(self.btn_stop)
         lay.addWidget(bar2)
+
+        # 相似查找的实话与排除说明。只在选了「相似查找」时出现 ——
+        # 第一句必须写：dHash 对裁剪敏感（实测裁掉 5% 边缘距离就从 0 跳到 16），
+        # 不写的话用户会认定「明明是同一张图怎么找不到」。
+        self.lb_sim_tip = QLabel(
+            "相似查找对「缩放、转发压缩」效果最好；裁剪或旋转过的图可能找不到。<br>"
+            "已跳过矢量图、小于 128px、大于 6000px 与系统自带图片。")
+        self.lb_sim_tip.setObjectName("hint")
+        self.lb_sim_tip.setWordWrap(True)
+        self.lb_sim_tip.setVisible(False)
+        lay.addWidget(self.lb_sim_tip)
+        self._sync_sim_ui()
 
         # ---- 主体
         split = QSplitter(Qt.Horizontal)
@@ -782,6 +810,19 @@ class DupPage(QWidget):
         self.match = i
         if self.cfg:
             self.cfg.set("dup_match", i)
+        self._sync_sim_ui()
+
+    def _sync_sim_ui(self):
+        """相似查找专属控件只在选中第四项时露面。"""
+        on = (self.match == MATCH_SIMILAR)
+        for w in (self.lb_sim, self.cb_sim, self.lb_sim_tip):
+            w.setVisible(on)
+
+    def _on_sim_level_changed(self, i):
+        self.sim_level = i
+        self.cb_sim.setToolTip(IH.LEVEL_HINTS[i])
+        if self.cfg:
+            self.cfg.set("sim_level", i)
 
     def _on_rule_changed(self, i, tag):
         self.rule = i
@@ -852,9 +893,13 @@ class DupPage(QWidget):
         """开始查找：起线程、显示扫描条，结束后自动按规则选一遍。"""
         if self.thread and self.thread.isRunning():
             return
-        a = os.path.normpath(self.ed_a.currentText().strip())
-        b = os.path.normpath(self.ed_b.currentText().strip())
-        if not os.path.isdir(a):
+        # ⚠️ 不能直接 normpath("")：它返回 "."，等于拿程序所在目录当扫描目标。
+        # 用户把目录 B 清空是想「只扫一个目录」，不是想扫 exe 旁边那一堆文件。
+        raw_a = self.ed_a.currentText().strip()
+        raw_b = self.ed_b.currentText().strip()
+        a = os.path.normpath(raw_a) if raw_a else ""
+        b = os.path.normpath(raw_b) if raw_b else ""
+        if not a or not os.path.isdir(a):
             QMessageBox.warning(self, "路径无效", f"目录 A 不存在：{a}")
             return
         if b and not os.path.isdir(b):
@@ -872,10 +917,16 @@ class DupPage(QWidget):
         for _t in ("top", "right"):
             self._fw[_t]["ext"].clear()
         same = (a.lower() == b.lower())
-        where = a if same else f"{a} ↔ {b}"
-        self.banner.start(f"正在查找重复文件 · {where}", "准备中…",
+        where = a if (not b or same) else f"{a} ↔ {b}"
+        title = ("正在查找相似图片" if self.match == MATCH_SIMILAR
+                 else "正在查找重复文件")
+        self.banner.start(f"{title} · {where}", "准备中…",
                           on_stop=self.stop_scan)
-        self.finder = DupFinder(a, b, self.min_mb * 1024 * 1024, self.match)
+        self.finder = DupFinder(
+            a, b, self.min_mb * 1024 * 1024, self.match,
+            sim_dist=IH.LEVEL_VALUES[
+                self.sim_level if 0 <= self.sim_level < 3 else 0],
+            sim_gif=self.sim_gif)
         self.thread = DupThread(self.finder, self)
         self.thread.progress.connect(
             lambda what, n: self.banner.set_sub(f"{what} {n} 个…"))
@@ -891,22 +942,51 @@ class DupPage(QWidget):
     def _on_done(self, groups):
         self.btn_scan.setEnabled(True)
         self.btn_stop.setEnabled(False)
+        # 用户点过「这组不是重复」的组合不再出现
+        if self.sim_ignored:
+            groups = [g for g in (groups or [])
+                      if self._group_fp(g) not in self.sim_ignored]
         self.groups = groups or []
         self._fill_ext_list()
-        self.total_waste = sum(g["waste"] for g in self.groups)
+        self.total_waste = sum(g.get("waste") or 0 for g in self.groups)
         if self.sfx:
             self.sfx.play("found" if self.groups else "scan_done")
         self._auto_select()
         if not self.groups:
-            self.banner.finish("查找完成", "没有找到重复文件")
+            self.banner.finish("查找完成", self._empty_hint())
             QTimer.singleShot(1600, self.banner.hide)
-            self.lb_stat.setText("没有找到重复文件，可以降低阈值或换一个目录试试。")
+            self.lb_stat.setText(self._empty_hint())
         else:
             self.banner.finish(
                 "查找完成",
                 f"{len(self.groups)} 组 · "
                 f"涉及 {sum(len(g['files']) for g in self.groups)} 个文件")
             QTimer.singleShot(1600, self.banner.hide)
+
+    def _empty_hint(self):
+        """没找到结果时的落空提示：相似模式要说出「为什么可能找不到」。"""
+        if self.match == MATCH_SIMILAR:
+            # finder 可能还没建（比如结果是被注入的），要先取到 finder 本身
+            finder = getattr(self, "finder", None)
+            skipped = getattr(finder, "sim_skipped", None) or {}
+            n = sum(skipped.values())
+            tail = f"（已跳过 {n} 张）" if n else ""
+            return ("没有找到相似图片" + tail +
+                    "。可以切到「宽松」档，或换一个目录试试——"
+                    "裁剪、旋转过的图这种算法认不出来。")
+        return "没有找到重复文件，可以降低阈值或换一个目录试试。"
+
+    @staticmethod
+    def _group_fp(g):
+        """一组文件的指纹：排序后的小写路径拼起来取 md5 前 16 位。
+
+        「这组不是重复」就记这个，下次扫描时同组合直接过滤掉。
+        文件增删后指纹会变、忽略自然失效 —— 这是可接受的：忽略本来就是
+        针对「当时这一组」的临时决定。
+        """
+        import hashlib
+        paths = sorted((f["path"] or "").lower() for f in g.get("files") or [])
+        return hashlib.md5("\n".join(paths).encode("utf-8", "replace")).hexdigest()[:16]
 
     # ------------------------------------------------------------ 选择
     def _auto_select(self):
@@ -919,6 +999,12 @@ class DupPage(QWidget):
         self.keeper_of.clear()
         self.manual_keep.clear()      # 程序化重算，清空手动保留标记
         for gi, g in enumerate(self.groups):
+            # 🔴 底线：相似组一律不自动勾选、也不指定「保留项」。
+            # dHash 只是「看起来像」，不是「一模一样」——擅自替用户勾上，
+            # 万一是两张不同的照片就被删了。这里宁可什么都不做。
+            if g.get("kind") == "similar":
+                self.keeper_of[gi] = None
+                continue
             pref = self._copy_marker_keeper(g["files"])
             keeper = pref if pref else pick_keeper(g["files"], self.rule, self.keep_dirs)
             self.keeper_of[gi] = keeper["path"] if keeper else None
@@ -949,9 +1035,30 @@ class DupPage(QWidget):
         self.manual_keep.clear()
         self._refresh_tree()
 
+    def _group_waste(self, g):
+        """这一组按当前勾选能释放多少。
+
+        精确组每份一样大，等价于 size × n_del；相似组每张大小不同，
+        必须逐张累加 —— 拿 g["size"]（组内最大那份）去乘会算出离谱的数。
+        一个式子同时管两种组：直接加勾选文件的实际大小。
+        """
+        return sum(f["size"] for f in g["files"]
+                   if f["path"].lower() in self.delete_set)
+
     def _waste_total(self):
-        return sum(g["size"] for g in self.groups
-                   for f in g["files"] if f["path"].lower() in self.delete_set)
+        return sum(f["size"] for g in self.groups for f in g["files"]
+                   if f["path"].lower() in self.delete_set)
+
+    def _group_col4(self, g):
+        """组行最后一列的文案与颜色。
+
+        相似组默认一张都不勾，这时写「可释放 0 B」会让人误以为「这组没什么用」。
+        写「待选择」才是实话：值多少取决于你挑哪几张删。
+        """
+        w = self._group_waste(g)
+        if g.get("kind") == "similar" and not w:
+            return "待选择", self.pal["text_faint"]
+        return f"可释放 {fmt(w)}", self.pal["accent"]
 
     def _on_item_changed(self, item, col):
         if col != 0:
@@ -975,8 +1082,9 @@ class DupPage(QWidget):
         gi = parent.data(0, Qt.UserRole + 1) if parent is not None else None
         if isinstance(gi, int) and gi < len(self.groups):
             g = self.groups[gi]
-            n_del = sum(1 for f in g["files"] if f["path"].lower() in self.delete_set)
-            parent.setText(4, f"可释放 {fmt(g['size'] * n_del)}")
+            txt, col = self._group_col4(g)
+            parent.setText(4, txt)
+            parent.setForeground(4, self._c(col))
         self._update_stat()
 
     def _row_reason(self, path):
@@ -1034,6 +1142,16 @@ class DupPage(QWidget):
             # 还没扫描出结果：保留「选择目录后点开始查找」这类提示语
             return
         files = sum(len(g["files"]) for g in self.groups)
+        n_sim = sum(1 for g in self.groups if g.get("kind") == "similar")
+        if n_sim:
+            # 相似组和精确组混在一起报一个总数会误导（「这 5 组里哪些能放心删？」），
+            # 所以分开说。精确模式的原有文案一个字符都不动。
+            self.lb_stat.setText(
+                f"已标记 <b>{n}</b> 个待删除 · "
+                f"精确 <b>{len(self.groups) - n_sim}</b> 组 · "
+                f"疑似相似 <b>{n_sim}</b> 组 · "
+                f"可释放 <b>{fmt(self._waste_total())}</b>")
+            return
         self.lb_stat.setText(
             f"已标记 <b>{n}</b> 个待删除 · "
             f"可释放 <b>{fmt(self._waste_total())}</b> · "
@@ -1165,31 +1283,42 @@ class DupPage(QWidget):
         for gi, g in enumerate(self.groups):
             size = g["size"]
             files = g["files"]
-            keeper = self.keeper_of.get(gi)
-            n_del = sum(1 for f in files if f["path"].lower() in self.delete_set)
+            is_sim = g.get("kind") == "similar"
+            if is_sim:
+                # 相似组里每张大小都不同，标题不能写「N 个相同文件」；
+                # 第一列给组内合计，让用户一眼知道这堆图一共占多少
+                total = sum(f["size"] for f in files)
+                head = f"疑似相似 · {len(files)} 张图片"
+                col1, sort1 = fmt(total), total
+            else:
+                head = f"{fmt(size)} · {len(files)} 个相同文件"
+                col1, sort1 = fmt(size), size
+            col4, fg4 = self._group_col4(g)
             git = QTreeWidgetItem([
-                f"{fmt(size)} · {len(files)} 个相同文件",
-                fmt(size), "", "",
-                f"可释放 {fmt(size * n_del)}",
+                head, col1, "", "", col4,
             ])
             git.setData(0, Qt.UserRole, "")
             git.setData(0, Qt.UserRole + 1, gi)
-            git.setData(1, Qt.UserRole, size)                # 大小列排序用
-            git.setData(4, Qt.UserRole, size * n_del)         # 可释放列排序用
-            git.setForeground(0, self._c(p["text"]))
-            git.setForeground(4, self._c(p["accent"]))
+            git.setData(1, Qt.UserRole, sort1)                # 大小列排序用
+            git.setData(4, Qt.UserRole, self._group_waste(g))  # 可释放列排序用
+            git.setForeground(0, self._c(
+                p["risk"]["gold"] if is_sim else p["text"]))
+            git.setForeground(4, self._c(fg4))
+            if is_sim:
+                git.setToolTip(0, "算法判断这几张图像同一张图，但没有逐字节核对。"
+                                  "请展开看一眼再决定删哪个。")
             self.tw.addTopLevelItem(git)
             for f in files:
                 st, c0, c4 = self._row_reason(f["path"])
                 it = QTreeWidgetItem([
                     f["path"],
-                    fmt(size),
+                    fmt(f["size"]),                 # 相似组每张大小不同，逐行取自己的
                     time.strftime("%Y-%m-%d %H:%M", time.localtime(f["ctime"])),
                     time.strftime("%Y-%m-%d %H:%M", time.localtime(f["mtime"])),
                     st,
                 ])
                 it.setData(0, Qt.UserRole, f["path"])
-                it.setData(1, Qt.UserRole, size)          # 大小列排序用
+                it.setData(1, Qt.UserRole, f["size"])     # 大小列排序用
                 it.setData(2, Qt.UserRole, f["ctime"])    # 创建时间列排序用
                 it.setData(3, Qt.UserRole, f["mtime"])    # 修改时间列排序用
                 it.setToolTip(0, f["path"])
@@ -1418,11 +1547,23 @@ class DupPage(QWidget):
             "%Y-%m-%d %H:%M", time.localtime(st.st_mtime)))
         self.lb_dir.setText("所在目录：" + os.path.dirname(path))
         if grp:
-            waste = grp["size"] * (len(grp["files"]) - 1)
+            is_sim = grp.get("kind") == "similar"
+            # 相似组每张大小不同，套 size×(n-1) 会算出离谱的数；
+            # 三个地方（列表汇总 / 详情环形图 / 底部统计）现在统一走这个口径
+            waste = grp.get("waste")
+            if waste is None:
+                waste = grp["size"] * (len(grp["files"]) - 1)
             tot = self.total_waste or max(waste, 1)
-            self.donut.set(waste / tot if tot else 0, fmt(grp["size"]),
-                           f"{len(grp['files'])} 个副本",
-                           p["accent"])
+            if is_sim:
+                total_b = sum(f["size"] for f in grp["files"])
+                mx = max((f.get("sim") or 0.0) for f in grp["files"])
+                self.donut.set(waste / tot if tot else 0, fmt(total_b),
+                               f"{len(grp['files'])} 张 · 最像 {mx:.0f}%",
+                               p["risk"]["gold"])
+            else:
+                self.donut.set(waste / tot if tot else 0, fmt(grp["size"]),
+                               f"{len(grp['files'])} 个副本",
+                               p["accent"])
         else:
             self.donut.set(0, fmt(st.st_size), "单文件", p["text_faint"])
 
@@ -1510,6 +1651,9 @@ class DupPage(QWidget):
                     lambda: self._group_all(g, True))
                 act(m, "本组全部取消", "check_off",
                     lambda: self._group_all(g, False))
+                if g.get("kind") == "similar":
+                    act(m, "这组不是重复", "keep",
+                        lambda: self._ignore_group(g))
                 m.addSeparator()
             exp = it.isExpanded()
             act(m, "折叠" if exp else "展开", "toggle",
@@ -1548,6 +1692,25 @@ class DupPage(QWidget):
             else:
                 self.delete_set.discard(low)
                 self.manual_keep.add(low)   # 整组取消 = 全部手动保留
+        self._refresh_tree()
+
+    def _ignore_group(self, g):
+        """「这组不是重复」：记下指纹，这组从列表里消失，下次扫描也不再出现。
+
+        删掉一组会让 self.groups 的下标整体前移，而 keeper_of 是按下标存的
+        —— 所以必须整体重算一遍，不能只删列表项。重算会清掉用户的勾选，
+        这里把手动勾过的再恢复回来。
+        """
+        fp = self._group_fp(g)
+        if fp not in self.sim_ignored:
+            self.sim_ignored.append(fp)
+            if self.cfg:
+                self.cfg.set("sim_ignored", self.sim_ignored)
+        keep_sel = set(self.delete_set)
+        self.groups = [x for x in self.groups if x is not g]
+        alive = {f["path"].lower() for x in self.groups for f in x["files"]}
+        self._auto_select()                       # 重建 keeper_of + 树
+        self.delete_set = {p for p in keep_sel if p in alive}
         self._refresh_tree()
 
     # ------------------------------------------------------------ 优先目录

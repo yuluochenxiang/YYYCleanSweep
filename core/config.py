@@ -35,7 +35,10 @@ DEFAULTS = {
     "dup_dir_a": "",
     "dup_dir_b": "",
     "dup_min_mb": 1,
-    "dup_match": 1,                # 0 仅大小 / 1 快速校验 / 2 完整 MD5
+    "dup_match": 1,                # 0 仅大小 / 1 快速校验 / 2 完整 MD5 / 3 相似查找
+    "sim_level": 0,                # 相似度：0 严格 / 1 标准 / 2 宽松
+    "sim_include_gif": True,       # 相似查找是否纳入 GIF（取第一帧）
+    "sim_ignored": [],             # 「这组不是重复」忽略掉的路径组合指纹
     "dup_rule": 0,                 # 保留规则下标
     "dup_mode": "recycle",         # recycle / backup / permanent
     "dup_keep_dirs": [],           # 优先保留目录

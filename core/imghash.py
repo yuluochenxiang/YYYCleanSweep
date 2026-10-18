@@ -63,6 +63,15 @@ def is_candidate(path):
     return ext in SIM_EXTS and ext not in SKIP_EXTS
 
 
+def is_vector(path):
+    """是不是「看着像图、但不该参与比对」的那类（.ico / .svg）。
+
+    单独拉出来是为了统计口径：这两类要能出现在「已跳过矢量图」里，
+    而 .txt / .mp4 这些压根不算图片，不该占跳过数。
+    """
+    return _ext_of(path) in SKIP_EXTS
+
+
 def skip_reason(path, w, h):
     """返回跳过原因；返回 None 表示这张图可以算哈希。
 
@@ -171,8 +180,19 @@ def group_similar(items, max_dist=LEVEL_STRICT, on_progress=None):
     cand = set()
     for b in buckets:
         for idxs in b.values():
-            if len(idxs) < 2 or len(idxs) > 400:
-                # 过于常见的段值（比如纯色图的 0x0000）不产生有效线索，跳过
+            if len(idxs) < 2:
+                continue
+            if len(idxs) > 400:
+                # 超大桶（纯色图、同一张图的大量副本）不能两两比：n² 会炸。
+                # 但也不能整个跳过 —— 那样 500 张真副本会全部落单。
+                # 折中：桶内按完整哈希再分组，同哈希的串成一条链（O(n)）。
+                # 不同哈希的不在这里比，免得纯色图们被硬凑成一组。
+                by_hash = {}
+                for i in idxs:
+                    by_hash.setdefault(items[i][1], []).append(i)
+                for same in by_hash.values():
+                    for k in range(len(same) - 1):
+                        cand.add((same[k], same[k + 1]))
                 continue
             for a in range(len(idxs)):
                 for c in range(a + 1, len(idxs)):
