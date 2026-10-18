@@ -1,5 +1,6 @@
 @echo off
-chcp 65001 >nul
+REM Do not switch console codepage here: it can kill the batch instantly.
+REM This file stays pure ASCII; all Chinese output comes from run.py.
 setlocal
 rem ASCII-only on purpose: Chinese messages are printed by run.py (UTF-8).
 rem Double-click this file to run YYYCleanSweep from source on any machine.

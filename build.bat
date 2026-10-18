@@ -1,5 +1,6 @@
 @echo off
-chcp 65001 >nul
+REM Do not switch console codepage here: it can kill the batch instantly.
+REM This file stays pure ASCII; all Chinese output comes from build.py.
 setlocal
 set "PY=E:\work\WB_\YYYCleanSweep\venv\Scripts\python.exe"
 set "LOG=%~dp0build_bat.log"
