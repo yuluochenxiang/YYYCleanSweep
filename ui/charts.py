@@ -7,7 +7,7 @@ from PySide6.QtGui import QColor, QPainter, QPen, QFont
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
 
 from ui.theme import palette, DEFAULT_THEME
-from ui.widgets import fmt, hex_alpha
+from ui.widgets import fmt, with_alpha
 from core.sizefmt import fmt_bytes, fmt_pct, pct_of
 
 
@@ -124,7 +124,7 @@ class _BarRow(QWidget):
         painter.drawRoundedRect(r, 5, 5)
         if self.frac > 0:
             fr = QRectF(0, 1, max(6.0, w * self.frac), h - 2)
-            painter.setBrush(QColor(hex_alpha(self.color, 0.24)))
+            painter.setBrush(with_alpha(self.color, 0.24))
             painter.drawRoundedRect(fr, 5, 5)
 
         # 左侧色块

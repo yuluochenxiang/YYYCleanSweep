@@ -4,7 +4,7 @@
 标准库搞不定这两种，硬做要引入 py7zr 之类的依赖，会把成品 exe 撑大几 MB，
 不值得。遇到就明确返回"不支持"，让界面优雅地显示一句说明。
 
-刻意不 import PySide6：这是纯逻辑，离 Larson 界面远得很，方便被任何页面复用。
+刻意不 import PySide6：这是纯逻辑，和界面层没有关系，方便被任何页面复用。
 """
 import os
 import zipfile

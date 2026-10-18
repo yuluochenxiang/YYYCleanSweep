@@ -3,7 +3,7 @@
 # 所有窗口标题 / 顶栏标题统一用这一个全称
 APP_NAME = "YYYCleanSweep 磁盘清理工具 离线版"
 APP_ID = "YYYCleanSweep"          # 配置目录、日志目录、文件名用的短名
-APP_VERSION = "3.37"
+APP_VERSION = "3.38"
 APP_TAGLINE = "Windows 磁盘清理与空间分析"
 APP_DESC = "看得懂每一个目录、每一步都留痕的 Windows 清理工具"
 

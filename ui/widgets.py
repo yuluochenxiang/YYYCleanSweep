@@ -107,9 +107,21 @@ def chip(text, color, pal=None, soft=None):
 
 
 def hex_alpha(color, alpha):
-    """#RRGGBB -> rgba(...)。"""
+    """#RRGGBB -> rgba(...) 字符串，给 QSS / 富文本用。"""
     c = QColor(color)
     return f"rgba({c.red()},{c.green()},{c.blue()},{alpha:.2f})"
+
+
+def with_alpha(color, alpha):
+    """#RRGGBB + 透明度 -> QColor，给 QPainter 用。
+
+    别拿 hex_alpha() 的结果去构造 QColor：Qt 只认 "#AARRGGBB" / 颜色名，
+    "rgba(226,75,74,0.24)" 这种函数式写法解析失败会得到无效色，
+    画笔/画刷静默退化成纯黑（条形图整根变黑就是这么来的，v3.38 修）。
+    """
+    c = QColor(color)
+    c.setAlphaF(max(0.0, min(1.0, float(alpha))))
+    return c
 
 
 # ---------------------------------------------------------------- 统一行样式
@@ -976,7 +988,7 @@ class BigCheckStyle(QProxyStyle):
             painter.setBrush(QBrush(QColor(p["input"])))
             painter.drawRoundedRect(rect, 5, 5)
             if hover:
-                pen = QPen(QColor(hex_alpha(p["accent"], 0.45)), 2.0)
+                pen = QPen(with_alpha(p["accent"], 0.45), 2.0)
                 pen.setCapStyle(Qt.RoundCap)
                 painter.setPen(pen)
                 x, y = rect.x(), rect.y()
@@ -1088,7 +1100,7 @@ class DeleteCheckStyle(BigCheckStyle):
             painter.setBrush(QBrush(QColor(p["input"])))
             painter.drawRoundedRect(rect, 5, 5)
             if hover:
-                pen = QPen(QColor(hex_alpha(p["risk"]["danger"], 0.5)), 2.0)
+                pen = QPen(with_alpha(p["risk"]["danger"], 0.5), 2.0)
                 pen.setCapStyle(Qt.RoundCap)
                 painter.setPen(pen)
                 x, y = rect.x(), rect.y()

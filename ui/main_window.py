@@ -1085,6 +1085,26 @@ class MainWindow(QMainWindow):
         sl.addWidget(t)
         self.big_bars = TypeBars(max_rows=8)
         sl.addWidget(self.big_bars)
+
+        # ---- 压缩包内容（H）：只在选中 zip / tar 时才露出来
+        self.lb_arch_title = QLabel("压缩包内容")
+        self.lb_arch_title.setObjectName("h2")
+        sl.addWidget(self.lb_arch_title)
+        self.lb_arch_sum = QLabel("")
+        self.lb_arch_sum.setObjectName("hint")
+        self.lb_arch_sum.setWordWrap(True)
+        sl.addWidget(self.lb_arch_sum)
+        self.arch_bars = TypeBars(max_rows=8)
+        sl.addWidget(self.arch_bars)
+        self.lb_arch_top = QLabel("")
+        self.lb_arch_top.setObjectName("hint")
+        self.lb_arch_top.setWordWrap(True)
+        sl.addWidget(self.lb_arch_top)
+        # 一开始必须藏起来，否则打开大文件页会看到一块空的「压缩包内容」
+        for _w in (self.lb_arch_title, self.lb_arch_sum,
+                   self.arch_bars, self.lb_arch_top):
+            _w.hide()
+
         b_open = QPushButton("打开所在位置")
         b_open.clicked.connect(lambda: self._big_open(
             self.tw_big.currentItem(), 0))
@@ -1568,6 +1588,8 @@ class MainWindow(QMainWindow):
                 c.set_palette(self.pal)
         if hasattr(self, "big_bars"):
             self.big_bars.set_palette(self.pal)
+        if hasattr(self, "arch_bars"):
+            self.arch_bars.set_palette(self.pal)
         for b in (getattr(self, "scan_banner", None),
                   getattr(self, "big_banner", None),
                   getattr(self, "del_banner", None)):
@@ -2746,6 +2768,7 @@ class MainWindow(QMainWindow):
             w.setText("—")
         self.big_donut.set(0, "—", "", self.pal["text_faint"])
         self.big_bars.set_items([], 0)
+        self._fill_archive_detail("")
 
     def _scan_big(self):
         self.btn_big.setEnabled(False)
@@ -2931,12 +2954,79 @@ class MainWindow(QMainWindow):
             self.lb_big_mt.setText(self._mtime_of(full))
             ext = os.path.splitext(full)[1].lstrip(".").lower() or "(无扩展名)"
             self._big_bars_from_ext({ext: [size, 1]})
+            self._fill_archive_detail(full)
         else:
             node = self._big_node(full)
             cnt = node[1] if node else 0
             self.lb_big_cnt.setText(f"{cnt} 个文件")
             self.lb_big_mt.setText(self._mtime_of(full))
             self._big_bars_from_ext(node[5] if node else {})
+            self._fill_archive_detail("")        # 目录不是压缩包，这一块收起来
+
+    # ---------------------------------------------------------- 压缩包清单（H）
+    def _arch_bars_from_ext(self, exts, total):
+        """把压缩包里的扩展名统计画成条形图。
+
+        配色和分类名全部走 knowledge.filetypes()，与「类型构成」那一块同源，
+        不自己写「视频/图片/文档」的对照表（v3.27 的教训）。
+        """
+        if not exts:
+            self.arch_bars.set_items([], 0)
+            return
+        ft = filetypes()
+        items = []
+        for cid, (size, count) in ft.group(exts):
+            cat = next((c for c in ft.cats if c["id"] == cid), ft.fallback)
+            items.append((cat["name"], cat["color"], size, count))
+        self.arch_bars.set_items(items, total or 1)
+
+    def _fill_archive_detail(self, full):
+        """选中项是压缩包才去读清单；普通文件 / 目录把这一块整个藏掉。
+
+        用 hide()/show() 而不是清空文字 —— 选中普通文件时这块应该「不存在」，
+        而不是留一片空白。
+
+        注意判断要连 UNSUPPORTED_EXTS 一起算：.rar / .7z 读不了，
+        但正是要让用户看到「暂不支持 .rar 格式」这句话，而不是干脆不出现。
+        """
+        from core import archive
+        parts = (self.lb_arch_title, self.lb_arch_sum,
+                 self.arch_bars, self.lb_arch_top)
+        ext = archive.ext_of(full) if full else ""
+        if ext not in archive.ARCHIVE_EXTS \
+                and ext not in archive.UNSUPPORTED_EXTS:
+            for w in parts:
+                w.hide()
+            return
+        r = archive.peek(full)
+        for w in parts:
+            w.show()
+        if r is None or r.get("error"):
+            self.lb_arch_sum.setText((r or {}).get("error") or "")
+            self.arch_bars.set_items([], 0)
+            self.lb_arch_top.setText("")
+            return
+        txt = f"共 {r['members']} 个成员 · 解压后 {fmt(r['total'])}"
+        cmp_ = r.get("compressed")
+        if cmp_ and r["total"]:
+            ratio = int((1 - cmp_ / max(r["total"], 1)) * 100)
+            if ratio > 0:
+                txt += f" · 压缩率 {ratio}%"
+        if r.get("encrypted"):
+            txt += " · 含加密成员"
+        if r.get("truncated"):
+            txt += f" · 仅统计前 {archive.MAX_MEMBERS} 项"
+        self.lb_arch_sum.setText(txt)
+        self._arch_bars_from_ext(r.get("exts") or {}, r.get("total") or 0)
+        top = r.get("top") or []
+        if top:
+            n, s = top[0]
+            # 只有列满 8 条才说明「后面的没列」，否则会被误读成包里就这么几个
+            more = "（仅显示最大的 8 项）" if len(top) >= 8 else ""
+            self.lb_arch_top.setText(
+                f"最大的成员：{os.path.basename(n) or n}　{fmt(s)}{more}")
+        else:
+            self.lb_arch_top.setText("")
 
     def _big_node(self, full):
         """从当前大文件树里取回某个路径对应的节点。"""
