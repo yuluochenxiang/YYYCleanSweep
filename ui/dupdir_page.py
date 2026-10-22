@@ -192,6 +192,11 @@ class DupDirPage(QWidget):
         return tw
 
     def on_theme(self, theme):
+        """切主题：换调色板 + 刷状态条 + 重画两棵树。
+
+        只 update() 不重排——树里的数据没变，重画一遍就够，
+        重新填充会把用户的展开状态弄丢。
+        """
         self.pal = palette(theme)
         self.banner.set_palette(self.pal)
         for tw in (self.tw_exact, self.tw_near):
@@ -199,6 +204,11 @@ class DupDirPage(QWidget):
 
     # ---------------- 扫描 ----------------
     def start_scan(self):
+        """开一轮扫描。已经在跑就直接返回（按钮此时也该是禁用的，双保险）。
+
+        状态机：开跑前置 `btn_scan` 灰、`btn_stop` 亮、两棵树清空；
+        结束由 `_on_done` 负责翻回来，中间出错也要翻（那里有 finish + 提示）。
+        """
         if self.thread and self.thread.isRunning():
             return
         root = os.path.expandvars((self.root_path or "").strip())
@@ -230,6 +240,8 @@ class DupDirPage(QWidget):
         self.thread.start()
 
     def stop_scan(self):
+        """请求中断。只是发 cancel 信号，线程自己检查到才退，
+        所以按钮立刻置灰、结果要等 `_on_done`（那里会收到 res=None）。"""
         if self.thread:
             self.thread.cancel()
         self.btn_stop.setEnabled(False)

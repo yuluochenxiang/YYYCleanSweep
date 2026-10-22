@@ -145,6 +145,7 @@ NEW_RULES = [
 
 
 def main():
+    """往 clean_rules.json 追加「应用缓存」类规则，已存在的 id 跳过。"""
     raw = open(P, encoding="utf-8").read()
     data = json.loads(raw)
     rules = data["rules"]

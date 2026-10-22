@@ -43,6 +43,7 @@ def read_version():
 
 
 def main():
+    """打包源码 zip。输出目录可跟一个参数，默认出到 E:\\work\\WB_\\。"""
     out_dir = sys.argv[1] if len(sys.argv) > 1 else r"E:\work\WB_"
     ver = read_version()
     top = f"YYYCleanSweep_src_v{ver}"

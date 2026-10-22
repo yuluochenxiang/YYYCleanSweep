@@ -14,9 +14,12 @@ import os
 import sys
 from collections import defaultdict
 
-# 需要扫描的源码根目录（相对工程根）
-SRC_DIRS = ["core", "ui"]
-EXTRA_FILES = ["main.py", "build.py"]
+# 需要扫描的源码根目录（相对工程根）。
+# ⚠️ tools/ 与 run.py、smoke_test.py 别漏：这些脚本平时没人跑，最容易藏着
+# 「改名漏改」这类一次性 bug（v3.41 修的 kb_merge.py NameError 就是这么漏掉的——
+# 当时 tools/ 不在扫描范围内，脚本坏了半年没人知道）。
+SRC_DIRS = ["core", "ui", "tools"]
+EXTRA_FILES = ["main.py", "build.py", "run.py", "smoke_test.py"]
 
 # 超过这么多行就认为函数/方法偏长，值得提示
 LONG_FUNC = 80
@@ -216,6 +219,7 @@ def report_sizes(roots, top=8):
 
 
 def main(argv):
+    """入口：命令行给了目录就只扫那些目录，没给就扫工程默认的那几处。"""
     roots = argv[1:] or (SRC_DIRS + [f for f in EXTRA_FILES if os.path.exists(f)])
     roots = [r for r in roots if os.path.exists(r)]
     files = list(iter_files(roots))

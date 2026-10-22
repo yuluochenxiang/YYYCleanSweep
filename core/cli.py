@@ -230,6 +230,11 @@ def run_scan(args):
     last = [0.0]
 
     def on_progress(done, cnt, name=""):
+        """扫描进度回调：同一行原地刷新，0.2 秒最多刷一次。
+
+        `last` 用单元素列表是因为它是闭包里的可变状态——
+        直接写 `last = now` 会被当成新建局部变量。--quiet 时整个不输出。
+        """
         if args.quiet:
             return
         now = time.time()

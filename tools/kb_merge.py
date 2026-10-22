@@ -1,17 +1,25 @@
-# 把 _kb_new*.py 里的条目合并进 rules/dir_knowledge.json。
-# 只写规则文件本身，不触碰磁盘上任何用户文件。
+"""把 kb_new*.py 里的新条目合并进 rules/dir_knowledge.json。
+
+只写规则文件本身，不触碰磁盘上任何用户文件。
+用法：python tools/kb_merge.py（合并后会打印「新增 / 跳过 / 剔除重名」的条数）
+
+⚠️ 它会**直接改写** rules/dir_knowledge.json（原地追加条目），跑之前先确认
+知识库没有被手工改过；要留退路就先备份那个 json。
+"""
 import io
 import json
 import os
 import sys
 
-# 本脚本放在 tools/ 下：规则文件要按工程根解析，kb_new*.py 与本脚本同级
-# （搬进 tools/ 时去掉了下划线前缀，导入名必须跟着改，否则 ModuleNotFoundError）。
+# 本脚本放在 tools/ 下：规则文件要按工程根解析，kb_new*.py 与本脚本同级。
+# 这两个模块从工程根搬进 tools/ 时去掉了下划线前缀，所以导入名是 kb_new / kb_new2，
+# 而下面取数据时用的是 as 别名 _kb_new / _kb_new2 —— 两处必须同时改，
+# 只改一处会变成 NameError（这个坑踩过一次）。
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
-import kb_new
-import kb_new2
+import kb_new as _kb_new
+import kb_new2 as _kb_new2
 
 PATH = os.path.join(ROOT, "rules", "dir_knowledge.json")
 data = json.load(io.open(PATH, encoding="utf-8"))

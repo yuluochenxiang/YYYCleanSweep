@@ -1360,8 +1360,12 @@ class DupPage(QWidget):
             self._queue_visible_thumbs()
 
     def _walk_items(self, fn):
-        """遍历树上每一行（顶层 + 已展开的子层）执行 fn。"""
+        """遍历树上每一行（顶层 + 已展开的子层）执行 fn。
+
+        只走**已展开**的子层：折叠着的行不必贴图，展开时会有专门的回调补上。
+        """
         def walk(it):
+            """深度优先：先处理自己，再递归子行。"""
             fn(it)
             for i in range(it.childCount()):
                 walk(it.child(i))
@@ -1373,6 +1377,7 @@ class DupPage(QWidget):
         m = {}
 
         def walk(it):
+            """收集有路径的行；分组行没有路径，跳过。"""
             p = it.data(0, Qt.UserRole)
             if p:
                 m.setdefault(p, []).append(it)
@@ -1389,6 +1394,7 @@ class DupPage(QWidget):
         out = []
 
         def walk(it):
+            """收集看得见的行；到 limit 就停——屏幕上最多也就显示几十行。"""
             if len(out) >= limit:
                 return
             r = self.tw.visualItemRect(it)

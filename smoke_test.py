@@ -19,6 +19,11 @@ _lines = []
 
 
 def log(*a):
+    """打一行并整份重写日志文件（不是追加）。
+
+    整份重写是为了让日志随时可读：中途崩了也能看到已经跑到哪一步，
+    而不是留一个没写完的半行。
+    """
     s = " ".join(str(x) for x in a)
     _lines.append(s)
     print(s, flush=True)
@@ -563,10 +568,12 @@ def numbers(view, col):
 
 
 def noninc(a):
+    """是不是「从大到小」（非递增）。排序冒烟用它验证降序结果。"""
     return all(a[i] >= a[i + 1] for i in range(len(a) - 1))
 
 
 def nondec(a):
+    """是不是「从小到大」（非递减）。"""
     return all(a[i] <= a[i + 1] for i in range(len(a) - 1))
 
 

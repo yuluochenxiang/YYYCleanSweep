@@ -947,19 +947,35 @@ class BigCheckStyle(QProxyStyle):
         painter.restore()
 
     # ---------------------------------------------------------- 勾选框
-    def _draw_check(self, opt, painter):
-        p = self.pal
+    def _check_frame(self, opt, painter):
+        """勾选框的公共前置：解析四个状态位、算出居中方框、打开抗锯齿。
+
+        返回 `(checked, partial, hover, enabled, rect)`。
+        普通勾选框（蓝勾）和去重页的删除框（红叉）**只有后面画什么符号不同**，
+        这一整段前置是完全一样的，抽到一处，免得改了这边忘了那边。
+        """
         state = opt.state
         checked = bool(state & QStyle.State_On)
         partial = bool(state & QStyle.State_NoChange)
         hover = bool(state & QStyle.State_MouseOver)
         enabled = bool(state & QStyle.State_Enabled)
-
         s = self.SIZE
         rect = QRectF(opt.rect.center().x() - s / 2.0,
                       opt.rect.center().y() - s / 2.0, s, s)
         painter.save()
         painter.setRenderHint(QPainter.Antialiasing)
+        return checked, partial, hover, enabled, rect
+
+    def _draw_check(self, opt, painter):
+        """普通勾选框：勾选/半选画强调色底 + 白色对勾，未勾选画空框。
+
+        半选（State_NoChange）画横杠而不是对勾——父目录只勾了一部分子项时用它。
+        未勾选但鼠标停着时，用 45% 透明度的强调色画一个「淡勾」做预览，
+        让用户知道点下去会变成什么样。
+        """
+        p = self.pal
+        checked, partial, hover, enabled, rect = self._check_frame(opt, painter)
+        s = self.SIZE
         if checked or partial:
             accent = QColor(p["accent"]) if enabled else QColor(p["disabled"])
             painter.setPen(Qt.NoPen)
@@ -1055,18 +1071,10 @@ class DeleteCheckStyle(BigCheckStyle):
     """
 
     def _draw_check(self, opt, painter):
+        """删除勾选框：勾上 = 标记删除，画红底白叉（逻辑同 `_check_frame`）。"""
         p = self.pal
-        state = opt.state
-        checked = bool(state & QStyle.State_On)
-        partial = bool(state & QStyle.State_NoChange)
-        hover = bool(state & QStyle.State_MouseOver)
-        enabled = bool(state & QStyle.State_Enabled)
-
+        checked, partial, hover, enabled, rect = self._check_frame(opt, painter)
         s = self.SIZE
-        rect = QRectF(opt.rect.center().x() - s / 2.0,
-                      opt.rect.center().y() - s / 2.0, s, s)
-        painter.save()
-        painter.setRenderHint(QPainter.Antialiasing)
         if checked or partial:
             # 红底 + 叉。accent_text 是「强调色底上的文字色」：暗色主题下是深色、
             # 亮色主题下是白色，两种红底上的对比度都够（约 7:1 与 5.8:1）。

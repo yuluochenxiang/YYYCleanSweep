@@ -220,6 +220,8 @@ class DupFinder:
         skipped = {}
 
         def skip(reason):
+            """记一条跳过原因。最后汇总进 self.sim_skipped 显示给用户——
+            不然「我的照片为什么没被找到」没法解释。"""
             skipped[reason] = skipped.get(reason, 0) + 1
 
         # ---- 1. 筛出能比对的图（只看后缀与像素尺寸，不解码）
@@ -250,6 +252,7 @@ class DupFinder:
 
         # ---- 2. 算哈希。解码是 CPU 活，开 4 个线程压一压
         def job(f):
+            """线程池里跑的一份活：算一张图的 dHash。返回 None 表示读不动。"""
             if should_cancel and should_cancel():
                 return None
             return IH.dhash(f["path"])
@@ -270,6 +273,7 @@ class DupFinder:
 
         # ---- 3. 聚类
         def on_group(d, total):
+            """聚类进度回调（imghash 内部边比边报）。"""
             if on_progress:
                 on_progress("比对相似度", d)
 

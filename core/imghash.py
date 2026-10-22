@@ -201,12 +201,15 @@ def group_similar(items, max_dist=LEVEL_STRICT, on_progress=None):
     parent = list(range(total))
 
     def find(x):
+        """并查集查找（带路径压缩）。"""
         while parent[x] != x:
             parent[x] = parent[parent[x]]
             x = parent[x]
         return x
 
     def union(a, b):
+        """并查集合并。这里统一挂到**下标更小**的那个上，
+        保证同一组无论怎么合，代表元都是固定的，组号才稳定。"""
         ra, rb = find(a), find(b)
         if ra != rb:
             parent[max(ra, rb)] = min(ra, rb)

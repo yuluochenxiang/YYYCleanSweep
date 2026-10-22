@@ -1,6 +1,9 @@
-# 新增目录描述条目（第二批）：常见软件 / 工具 / 开发环境 / 游戏。
-# 仅数据，不含任何文件操作。合并脚本见 _kb_merge.py。
-# 字段：id / name / names / paths(可选) / parents(可选) / kind / risk / purpose / advice
+"""新增目录描述条目（第二批）：常见软件 / 工具 / 开发环境 / 游戏。
+
+本模块**只有数据**，不做任何文件操作——往 `rules/dir_knowledge.json` 里合并由
+`kb_merge.py` 负责（它会把 kb_new 与 kb_new2 两份 NEW 一起读走）。
+字段：id / name / names / paths(可选) / parents(可选) / kind / risk / purpose / advice
+"""
 
 NEW = [
     # ==================== 代理 / 网络工具 ====================

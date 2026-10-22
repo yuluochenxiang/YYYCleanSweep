@@ -378,6 +378,7 @@ NEW_KB = [
 
 
 def merge_rules():
+    """把 NEW_RULES 并进 clean_rules.json。同 id 视为已存在，用新条目覆盖旧字段。"""
     with io.open(RULES, "r", encoding="utf-8") as f:
         data = json.load(f)
     exist = {r["id"]: r for r in data["rules"]}
@@ -394,6 +395,7 @@ def merge_rules():
 
 
 def merge_kb():
+    """把 NEW_KB 并进 dir_knowledge.json，规则同 merge_rules（同 id 覆盖）。"""
     with io.open(KB, "r", encoding="utf-8") as f:
         data = json.load(f)
     exist = {e["id"]: e for e in data["entries"]}

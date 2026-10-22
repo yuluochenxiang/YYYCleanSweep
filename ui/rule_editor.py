@@ -38,12 +38,14 @@ class _ComboDelegate(QStyledItemDelegate):
         self.options = list(options)
 
     def createEditor(self, parent, option, index):
+        """造一个下拉框。选项是 (真实值, 显示名) 二元组，真实值存 UserRole。"""
         cb = QComboBox(parent)
         for val, label in self.options:
             cb.addItem(label, val)
         return cb
 
     def setEditorData(self, editor, index):
+        """把格子里存的值选中。取不到 UserRole 就退回显示名，再找不到选第 0 项。"""
         v = index.data(Qt.UserRole)
         if v is None:
             v = index.data(Qt.DisplayRole)
@@ -51,10 +53,12 @@ class _ComboDelegate(QStyledItemDelegate):
         editor.setCurrentIndex(i if i >= 0 else 0)
 
     def setModelData(self, editor, model, index):
+        """写回：**两列都要写**——UserRole 存真值给程序读，DisplayRole 存中文给人看。"""
         model.setData(index, editor.currentData(), Qt.UserRole)
         model.setData(index, editor.currentText(), Qt.DisplayRole)
 
     def updateEditorGeometry(self, editor, option, index):
+        """铺满整格，不留边——下拉框窄一点会显示不下中文。"""
         editor.setGeometry(option.rect)
 
 

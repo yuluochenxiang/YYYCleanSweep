@@ -172,6 +172,11 @@ def find_duplicates(idx, min_bytes=10 * 1024 * 1024, min_count=2,
     exact = []
 
     def eligible(r):
+        """这个目录有没有资格参与比对。
+
+        三条卡口：体积够大、文件数够多、并且算出了签名（`digest` 为空说明
+        遍历时出错或被跳过）。`count > 0` 是防空目录混进来凑成一组。
+        """
         return (r["size"] >= min_bytes and r["count"] >= min_count
                 and r["count"] > 0 and r["digest"])
 
@@ -199,12 +204,14 @@ def find_duplicates(idx, min_bytes=10 * 1024 * 1024, min_count=2,
     parent = {p: p for p, _r in cand}
 
     def find(x):
+        """并查集查找（带路径压缩）。"""
         while parent[x] != x:
             parent[x] = parent[parent[x]]
             x = parent[x]
         return x
 
     def union(a, b):
+        """并查集合并：把 b 所在集合挂到 a 下面。"""
         ra, rb = find(a), find(b)
         if ra != rb:
             parent[rb] = ra

@@ -76,6 +76,7 @@ def launch(py):
 
 
 def main():
+    """从源码启动：挑解释器 → 缺 PySide6 就问要不要装 → 起 main.py。"""
     py = pick_python()
     if not ensure_pyside6(py):
         input("\n按回车键退出……")

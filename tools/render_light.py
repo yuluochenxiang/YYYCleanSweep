@@ -27,6 +27,11 @@ w.show()
 
 
 def shot(i, name, done):
+    """切到第 i 个页签、强制重绘后整窗截图。
+
+    中间那两次 processEvents + repaint 不能省：离屏模式下控件不会自己排布，
+    不手动刷一遍截出来是空白或半截。
+    """
     w.tabs.setCurrentIndex(i)
     app.processEvents()
     w.repaint()
@@ -41,6 +46,7 @@ steps = []
 
 
 def run_next():
+    """一个个页签接着截。延迟 500ms 是为了等懒加载/缩略图那一批异步活干完。"""
     if not steps:
         app.quit()
         return
